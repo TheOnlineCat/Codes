@@ -1,0 +1,359 @@
+repeat wait() until game:IsLoaded()
+getgenv().Get = setmetatable({}, {__index = function(Self, Idx) return game:GetService(Idx) end})
+getgenv().ToggleFarm = false
+getgenv().ToggleKillAura = false
+getgenv().ToggleMobAura = false
+getgenv().AuraDistance = 6
+getgenv().KillDistance = 12
+getgenv().FarmDistance = 3
+getgenv().HitSpeed = 0.15
+getgenv().SelectedQuest = nil
+getgenv().RollAmount = 25
+
+
+local EnemyBarrier = false
+
+
+
+local Players = Get.Players
+local Player = Players.LocalPlayer
+
+
+local Workspace = Get.Workspace
+
+local RunService = Get.RunService
+local Rep = game:GetService("ReplicatedStorage")
+
+
+
+local VirtualUser=game:service'VirtualUser'
+game:service'Players'.LocalPlayer.Idled:connect(function()
+VirtualUser:CaptureController()
+VirtualUser:ClickButton2(Vector2.new())
+end)
+
+--Hide Name
+function HideName()
+    for i,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+        if v.ClassName == "BillboardGui" then
+            v:Destroy()
+        end
+    end
+end
+
+HideName()
+
+
+RunService.Stepped:Connect(
+   function()
+       if ToggleFarm then
+           for i, v in pairs(Player.Character:GetChildren()) do
+               if v:IsA("BasePart") then
+                   v.CanCollide = false
+               end
+           end
+       end
+   end
+)
+
+
+local Old = getsenv(Player.PlayerScripts.MoveHandler)
+-- Improved Fps Due to these functions fucking up the game go figures
+hookfunction(
+Old.camshake,
+function()
+    return
+end
+)
+hookfunction(
+Old._G.knockback,
+function()
+    return
+end
+)
+hookfunction(
+Old._G.HitEffect,
+function()
+    return
+end
+)
+hookfunction(
+Old._G.flasheffect,
+function()
+    return
+end
+)
+hookfunction(
+Old.addparticle,
+function()
+    return
+end
+)
+
+
+
+
+
+
+local function ActivateAbility()
+    local args = {[1] = false} 
+    game:GetService("ReplicatedStorage").ToggleAbility:InvokeServer(unpack(args))
+end
+
+
+A = require(Workspace.EnemyStats) --Get enemy names and stats
+local MobList = {}
+for i, v in pairs(A) do
+    table.insert(MobList, i) --append name to list
+end
+
+local function GetPlayerList()
+    local PlayerList = {}
+    for _,v in pairs (Players:GetPlayers()) do
+        PlayerList.append(v)
+    end
+    return PlayerList
+end
+
+local function getNearestMobs(Type)
+    local LowestDistance = math.huge
+    local Target
+    
+    for i, v in ipairs(Workspace:GetChildren()) do
+        if v:IsA("Model") or v.Name == "Barrier" then
+            if ToggleFarm then
+                if not(table.find(Type, v.Name)) then
+                    continue
+                end
+            elseif ToggleMobAura then
+                if not(table.find(MobList, v.Name)) then
+                    continue
+                end
+            elseif not(v:FindFirstChildWhichIsA("Humanoid")) or v.Name == Player.Name then
+                continue
+            end
+            
+            -- if v.Name == "Barrier" then
+            --     print(v:GetModelCFrame().Position)
+            -- end
+            local Enemy = v:FindFirstChildWhichIsA("Humanoid")
+            if Enemy and Enemy.Health ~= 0 then
+                local CurrentDistance = (Player.Character.HumanoidRootPart.Position - v:GetModelCFrame().Position).Magnitude
+                if CurrentDistance < LowestDistance then
+                    LowestDistance = CurrentDistance
+                    Target = v
+                end
+            end
+        end
+    end
+    return Target
+end
+
+local function getNearestObstacles()
+    local LowestDistance = math.huge
+    local Target
+    for i, v in ipairs(Workspace:GetChildren()) do
+        if v:IsA("Model") and (not(table.find(MobList, v.Name)) or v.Name == "Barrier") and v.Name ~= Player.Name then
+            local Enemy = v:FindFirstChildWhichIsA("Humanoid")
+            if Enemy and Enemy.Health ~= 0 then
+                local CurrentDistance = (Player.Character.HumanoidRootPart.Position - v:GetModelCFrame().Position).Magnitude
+                if CurrentDistance < LowestDistance then
+                    LowestDistance = CurrentDistance
+                    Target = v
+                end
+            end
+        end
+    end
+    return Target
+end
+
+local function Hit(EnemyObject, Heavy)
+    if Heavy and EnemyObject.Name == "Barrier" then
+            Rep.Punch:FireServer(EnemyObject:FindFirstChildWhichIsA("Humanoid"), 6, Player.Character.Cancellations.Value, nil, 2)
+            wait(HitSpeed)
+    else
+        for i = 1, 5 do
+            Rep.Punch:FireServer(EnemyObject:FindFirstChildWhichIsA("Humanoid"), i, Player.Character.Cancellations.Value, nil, 3)
+            wait(HitSpeed)
+        end
+    end
+end
+
+
+local function Quest(Quest)
+    local args = {
+        [1] = Quest
+    } 
+    Rep.TakeQuest:FireServer(unpack(args))
+end
+
+
+
+local function Farm()
+    spawn(function()
+        while wait() and ToggleFarm do
+            pcall(function()
+            
+                if not Player.PlayerGui.MainClient.Quest.visible then
+                    Quest(SelectedQuest)
+                else
+                    local QuestCount = Player.PlayerGui.MainClient.Quest.Folder.Objective.progress.text:split("/")
+                    if QuestCount[1] == QuestCount[2] then
+                        Quest("Completed")
+                    end
+                end
+    
+
+                if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
+                    ActivateAbility()
+                end
+
+                local EnemyType
+                if SelectedQuest == "Real Amgogus" then 
+                    EnemyType = {"Cripple"}
+                elseif SelectedQuest == "Gaming Disorder" then 
+                    EnemyType = {"Crail"}
+                elseif SelectedQuest == "Kingdom" then 
+                    EnemyType = {"Blyke", "Isen", "Remi", "Zeke"}
+                elseif SelectedQuest == "Rigged Game" then 
+                    EnemyType = {"Arlo", "John", "Seraphina"}
+                elseif SelectedQuest == "Trouble in the backrooms" then 
+                    EnemyType = {"Seer", "John", "Seraphina"}
+                end
+
+                local Enemy = getNearestMobs(EnemyType)
+                local Vector = Player.Character.HumanoidRootPart.Position - Enemy:GetModelCFrame().Position
+                local Distance = (Vector).Magnitude
+                local Normal = Vector3.new(Vector.x/Distance, Vector.y/Distance, Vector.z/Distance)
+                
+
+                local Obstacle
+                Obstacle = getNearestObstacles()
+                if (Player.Character.HumanoidRootPart.Position - Enemy:GetModelCFrame().Position).Magnitude < AuraDistance and not(EnemyBarrier) then
+                    local Hp1 = Enemy:FindFirstChildWhichIsA("Humanoid").Health
+                    Hit(Enemy)
+                    if (Hp1 - Enemy:FindFirstChildWhichIsA("Humanoid").Health) == 0 then
+                        EnemyBarrier = true
+                    end
+                elseif ToggleKillAura and (Player.Character.HumanoidRootPart.Position - Obstacle.HumanoidRootPart.Position).Magnitude < KillDistance then
+                        Hit(Obstacle, false)
+                elseif Obstacle.Name == "Barrier" and (Player.Character.HumanoidRootPart.Position - Enemy:GetModelCFrame().Position).Magnitude < AuraDistance then
+                    Hit(Obstacle, true)
+                else
+                    EnemyBarrier = false
+                    Player.Character.Humanoid:MoveTo(Enemy:GetModelCFrame().Position + (Normal * FarmDistance))
+                end
+
+                
+
+                
+            end
+            )
+        end
+    end)
+end
+
+local function KillAura()
+    spawn(function()
+        while wait() and (ToggleKillAura or ToggleMobAura) do
+            if not ToggleFarm then
+                pcall(function()
+                    local Enemy = getNearestMobs()
+                    if (Player.Character.HumanoidRootPart.Position - Enemy:GetModelCFrame().Position).Magnitude < KillDistance then
+                        Hit(Enemy, false)
+                    end
+                end)
+            end
+        end
+    end)
+end
+
+
+
+local UILibrary = loadstring(game:HttpGet("https://pastebin.com/raw/V1ca2q9s"))()
+
+local MainUI = UILibrary.Load("Much Ultra, Very Fair")
+
+local PageFarm = MainUI.AddPage("Farm", false)
+    
+local FarmToggle = PageFarm.AddToggle("Toggle Natural Farm", false, function(value)
+    ToggleFarm = value
+    if value then
+        Player = Players.LocalPlayer
+        Farm()
+    end
+end)
+
+local SliderFarmDistance = PageFarm.AddSlider("Farm Distance", {Min = 0, Max = 15, Def = 3}, function(value)
+    FarmDistance = value
+end)
+
+local SliderAuraDistance = PageFarm.AddSlider("Aura Distance", {Min = 0, Max = 20, Def = 6}, function(value)
+    AuraDistance = value
+end)
+
+local QuestSelect = PageFarm.AddDropdown("Quest Select", {
+    "Real Amgogus",
+    "Gaming Disorder",
+    "Kingdom",
+    "Rigged Game",
+    "Trouble in the backrooms"
+    }, function(value)
+        SelectedQuest = value
+end)
+
+local PageKillAura = MainUI.AddPage("Kill Aura", false)
+
+local KillAuraToggle = PageKillAura.AddToggle("Kill Aura", false, function(value)
+    ToggleKillAura = value
+    if value then
+        KillAura()
+    end
+end)
+
+local MobAuraToggle = PageKillAura.AddToggle("Only Mobs", false, function(value)
+    ToggleMobAura = value
+end)
+
+local SliderKillDistance = PageKillAura.AddSlider("Kill Aura Distance", {Min = 0, Max = 16, Def = 12}, function(value)
+    KillDistance = value
+end)
+
+local SliderSpeed = PageKillAura.AddSlider("Hit Speed (ms)", {Min = 0, Max = 3000, Def = 150}, function(value)
+    HitSpeed = value/1000
+end)
+
+local PageMisc = MainUI.AddPage("Misc", false)
+
+local HideName = PageMisc.AddButton("Name Hidden", function()
+    HideName()
+end)
+
+local Reset = PageMisc.AddButton("Reset Character", function()
+    Player.Character.Humanoid.Health = 0
+end)
+
+-- Script generated by SimpleSpy - credits to exx#9394
+local RollFist = PageMisc.AddButton("Roll Fist", function()
+    for i = 1, RollAmount do
+        local args = {
+            [1] = "Fist"
+        }
+
+        game:GetService("ReplicatedStorage").RollGear:InvokeServer(unpack(args))
+    end
+end)
+
+local RollStyle = PageMisc.AddButton("Roll Style", function()
+    for i = 1, RollAmount do
+        local args = {
+            [1] = "Relic"
+        }
+
+        game:GetService("ReplicatedStorage").RollGear:InvokeServer(unpack(args))
+    end
+end)
+
+local SliderGear = PageMisc.AddSlider("Style Roll Amount", {Min = 0, Max = 100, Def = 25}, function(value)
+    RollAmount = value
+end)
