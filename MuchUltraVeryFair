@@ -16,8 +16,9 @@ getgenv().RollAmount = 25
 getgenv().ModePunch = false
 getgenv().ModeArbiter = false
 
+getgenv().FarmBoss = false
 
-local EnemyBarrier = false
+
 
 
 
@@ -195,8 +196,10 @@ local function Hit(Enemy)
         Punch(Enemy)
     elseif AuraMode == "Dark Blade (Arbiter Only)" then
         ArbiterHit(Enemy)
+        wait(0.1)
     elseif AuraMode == "Dark Blade Ult (Arbiter Only)" then
         ArbiterUlt(Enemy)
+        wait(0.1)
     end
 end
 
@@ -235,66 +238,117 @@ local function GetOffsetVector(Enemy)
     return NewPosition
 end
 
+local BossFight = false
+local EnemyBarrier = false
 
 local function Farm()
     spawn(function()
         while wait() do
-            if ToggleFarm then
-                
-                pcall(function()
-                
-                    if not Player.PlayerGui.MainClient.Quest.visible then
-                        Quest(SelectedQuest)
-                    else
-                        local QuestCount = Player.PlayerGui.MainClient.Quest.Folder.Objective.progress.text:split("/")
-                        if QuestCount[1] == QuestCount[2] then
-                            Quest("Completed")
+            if not BossFight then
+                if ToggleFarm then
+                    
+                    pcall(function()
+                    
+                        if not Player.PlayerGui.MainClient.Quest.visible then
+                            Quest(SelectedQuest)
+                        else
+                            local QuestCount = Player.PlayerGui.MainClient.Quest.Folder.Objective.progress.text:split("/")
+                            if QuestCount[1] == QuestCount[2] then
+                                Quest("Completed")
+                            end
+                        end
+            
+
+                        if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
+                            ActivateAbility()
+                        end
+
+                        local EnemyType = GetQuestMobs(SelectedQuest)
+                        local Enemy = getNearestMobs(EnemyType)
+                        local CurrentDistance = (Player.Character.HumanoidRootPart.Position - Enemy:GetModelCFrame().Position).Magnitude
+
+                        local Obstacle
+                        Obstacle = getNearestObstacles()
+                        if Obstacle.Name ~= "Barrier" then
+                            EnemyBarrier = false
+                        end
+
+                        if CurrentDistance < AuraDistance and not(EnemyBarrier) then
+                            local Hp1 = Enemy:FindFirstChildWhichIsA("Humanoid").Health
+                            Hit(Enemy)
+                            if (Hp1 - Enemy:FindFirstChildWhichIsA("Humanoid").Health) == 0 then
+                                EnemyBarrier = true
+                            end
+                        elseif KillPlayers and CurrentDistance < KillDistance then
+                            Hit(Obstacle)
+                        elseif Obstacle.Name == "Barrier" and CurrentDistance < AuraDistance then
+                            Hit(Obstacle)
+                        else
+                            Player.Character.Humanoid:MoveTo(GetOffsetVector(Enemy))
                         end
                     end
-        
-
-                    if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
-                        ActivateAbility()
-                    end
-
-                    local EnemyType = GetQuestMobs(SelectedQuest)
-                    local Enemy = getNearestMobs(EnemyType)
-                    local CurrentDistance = (Player.Character.HumanoidRootPart.Position - Enemy:GetModelCFrame().Position).Magnitude
-
-                    local Obstacle
-                    Obstacle = getNearestObstacles()
-                    if Obstacle.Name ~= "Barrier" then
-                        EnemyBarrier = false
-                    end
-
-                    if CurrentDistance < AuraDistance and not(EnemyBarrier) then
-                        local Hp1 = Enemy:FindFirstChildWhichIsA("Humanoid").Health
-                        Hit(Enemy)
-                        if (Hp1 - Enemy:FindFirstChildWhichIsA("Humanoid").Health) == 0 then
-                            EnemyBarrier = true
+                    )
+                elseif (ToggleKillAura or ToggleMobAura) and not ToggleFarm then
+                    pcall(function()
+                        local Enemy = getNearestMobs()
+                        if (Player.Character.HumanoidRootPart.Position - Enemy:GetModelCFrame().Position).Magnitude < KillDistance then
+                            Hit(Enemy)
                         end
-                    elseif KillPlayers and CurrentDistance < KillDistance then
-                        Hit(Obstacle)
-                    elseif Obstacle.Name == "Barrier" and CurrentDistance < AuraDistance then
-                        Hit(Obstacle)
-                    else
-                        Player.Character.Humanoid:MoveTo(GetOffsetVector(Enemy))
-                    end
+                    end)
                 end
-                )
-            elseif (ToggleKillAura or ToggleMobAura) and not ToggleFarm then
-                pcall(function()
-                    local Enemy = getNearestMobs()
-                    if (Player.Character.HumanoidRootPart.Position - Enemy:GetModelCFrame().Position).Magnitude < KillDistance then
-                        Hit(Enemy)
-                    end
-                end)
             end
         end
     end)
 end
 
+
+local BossPosition = Vector3.new(-96, 169, -30)
+local Bosses = {"John", "Arlo", "Seraphina"}
+
+
+local function LocateBoss()
+    for i, v in ipairs(Workspace:GetChildren()) do
+        if v:IsA("Model") and table.find(Bosses , v.Name) then
+            if (v:GetModelCFrame().Position - BossPosition).Magnitude < 30 then
+                return v
+            end
+        end
+    end    
+end
+
+
+local function BossFarm()
+    spawn(function()
+        while wait() and FarmBoss do
+            pcall(function()
+                if Player.PlayerGui.Boss.Enabled == true then
+                    print("Boss spawned")
+                    local Boss = LocateBoss()
+                    print(Boss.Name)
+                    --Player.Character.HumanoidRootPart.CFrame = Boss.GetModelCFrame()
+                    
+                    while Boss.Humanoid.Health ~= 0 do
+                        print("Boss is Alive")
+                        print(Boss.Humanoid.Health)
+                        print(Boss:GetModelCFrame().Position)
+                        BossFight = true
+                        if (Player.Character.HumanoidRootPart.Position - Boss:GetModelCFrame().Position).Magnitude  < KillDistance then
+                            ArbiterHit(Boss)
+                            print("hit")
+                        else
+                            Player.Character.Humanoid:MoveTo(Boss:GetModelCFrame().Position)
+                        end
+                    end
+                    BossFight = false
+                end
+            end)
+        end
+    end)
+end
+
+
 Farm()
+
 
 do
 local UILibrary = loadstring(game:HttpGet("https://pastebin.com/raw/V1ca2q9s"))()
@@ -319,6 +373,13 @@ local KillToggle = PageFarm.AddToggle("Kill Players (Uses Kill Aura Distance)", 
     KillPlayers = value
 end)
 
+local BossToggle = PageFarm.AddToggle("Auto Boss Kill", false, function(value)
+    FarmBoss = value
+    if value then
+        BossFarm()
+    end
+end)
+
 local QuestSelect = PageFarm.AddDropdown("Quest Select", {
     "Real Amgogus",
     "Gaming Disorder",
@@ -328,6 +389,8 @@ local QuestSelect = PageFarm.AddDropdown("Quest Select", {
     }, function(value)
         SelectedQuest = value
 end)
+
+
 
 local PageKillAura = MainUI.AddPage("Kill Aura", false)
 
@@ -358,6 +421,40 @@ local AuraMode = PageKillAura.AddDropdown("Choose Aura Mode",
         AuraMode = value
 end)
 
+
+local PageRoll = MainUI.AddPage("Roll", false)
+
+local RollAbility = PageRoll.AddButton("Roll Ability", function()
+    game:GetService("ReplicatedStorage").Reroll:InvokeServer()
+end)
+
+
+
+
+local RollFist = PageRoll.AddButton("Roll Fist", function()
+    for i = 1, RollAmount do
+        local args = {
+            [1] = "Fist"
+        }
+
+        game:GetService("ReplicatedStorage").RollGear:InvokeServer(unpack(args))
+    end
+end)
+
+local RollStyle = PageRoll.AddButton("Roll Style", function()
+    for i = 1, RollAmount do
+        local args = {
+            [1] = "Relic"
+        }
+
+        game:GetService("ReplicatedStorage").RollGear:InvokeServer(unpack(args))
+    end
+end)
+
+local SliderGear = PageRoll.AddSlider("Roll Amount", {Min = 0, Max = 100, Def = 25}, function(value)
+    RollAmount = value
+end)
+
 local PageMisc = MainUI.AddPage("Misc", false)
 
 local HideName = PageMisc.AddButton("Hide Identity", function()
@@ -368,28 +465,4 @@ local Reset = PageMisc.AddButton("Reset Character", function()
     Player.Character.Humanoid.Health = 0
 end)
 
-
-local RollFist = PageMisc.AddButton("Roll Fist", function()
-    for i = 1, RollAmount do
-        local args = {
-            [1] = "Fist"
-        }
-
-        game:GetService("ReplicatedStorage").RollGear:InvokeServer(unpack(args))
-    end
-end)
-
-local RollStyle = PageMisc.AddButton("Roll Style", function()
-    for i = 1, RollAmount do
-        local args = {
-            [1] = "Relic"
-        }
-
-        game:GetService("ReplicatedStorage").RollGear:InvokeServer(unpack(args))
-    end
-end)
-
-local SliderGear = PageMisc.AddSlider("Roll Amount", {Min = 0, Max = 100, Def = 25}, function(value)
-    RollAmount = value
-end)
 end
