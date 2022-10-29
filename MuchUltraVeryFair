@@ -267,7 +267,6 @@ local function Farm()
                         EnemyBarrier = false
                     end
 
-                    print(EnemyBarrier)
                     if CurrentDistance < AuraDistance and not(EnemyBarrier) then
                         local Hp1 = Enemy:FindFirstChildWhichIsA("Humanoid").Health
                         Hit(Enemy)
