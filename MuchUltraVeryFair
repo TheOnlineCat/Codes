@@ -18,6 +18,7 @@ getgenv().AuraMode = false
 getgenv().FarmBoss = false
 
 getgenv().ToggleAutoRoll = false
+getgenv().ToggleStore = true
 getgenv().RollThreshold = 15
 
 
@@ -293,7 +294,7 @@ local function Farm()
 
                         local Obstacle
                         Obstacle = getNearestObstacles()
-                        if Obstacle.Name ~= "Barrier" and not ((Player.Character.HumanoidRootPart.Position - Obstacle:GetModelCFrame().Position).Magnitude <= KillDistance) then
+                        if Obstacle.Name ~= "Barrier" and not ((Player.Character.HumanoidRootPart.Position - Obstacle:GetModelCFrame().Position).Magnitude < KillDistance) then
                             EnemyBarrier = false
                         end
                         if CurrentDistance < AuraDistance and not(EnemyBarrier) then
@@ -304,7 +305,7 @@ local function Farm()
                             end
                         elseif KillPlayers and CurrentDistance < KillDistance then
                             Hit(Obstacle)
-                        elseif Obstacle.Name == "Barrier" and CurrentDistance <= AuraDistance then
+                        elseif Obstacle.Name == "Barrier" and CurrentDistance < AuraDistance then
                             Hit(Obstacle)
                         else
                             Player.Character.Humanoid:MoveTo(GetOffsetVector(Enemy))
@@ -314,7 +315,7 @@ local function Farm()
                 elseif (ToggleKillAura or ToggleMobAura) and not ToggleFarm then
                     pcall(function()
                         local Enemy = getNearestMobs()
-                        if (Player.Character.HumanoidRootPart.Position - Enemy:GetModelCFrame().Position).Magnitude <= KillDistance then
+                        if (Player.Character.HumanoidRootPart.Position - Enemy:GetModelCFrame().Position).Magnitude < KillDistance then
                             Hit(Enemy)
                         end
                     end)
@@ -362,7 +363,7 @@ local function BossFarm()
                         if (Player.Character.HumanoidRootPart.Position - Boss:GetModelCFrame().Position).Magnitude  < KillDistance then
                             Hit(Boss)
                         else
-                            Player.Character.Humanoid:MoveTo(Boss:GetModelCFrame().Position)
+                            Player.Character.Humanoid:MoveTo(GetOffsetVector(Boss))
                         end
                         wait(0.1)
                     end
@@ -374,13 +375,22 @@ local function BossFarm()
     end)
 end
 
+
+getgenv().AbilityDict = {}
+getgenv().ReplaceAbility = nil
 local RerollPath = Player.PlayerGui.Reroll
 local AbilityList = {}
-getgenv().AbilityDict = {}
+local AbilityStore = {}
 for i, v in pairs(RerollPath.Prompt.Prompt.ScrollingFrame:GetChildren()) do
     if v:IsA("TextButton") then
         table.insert(AbilityList, v.Name)
         AbilityDict[v.Name] = 0
+    end
+end
+
+local function GetInventory()
+    for i, v in pairs(RerollPath.AbilityStorage.ScrollingFrame.StorageTemplate:GetChildren()) do
+        AbilityStore[i] = v
     end
 end
 
@@ -415,6 +425,16 @@ local function AutoRoll()
 
             if (Level >= RollThreshold) or (Level>= AbilityDict[Ability] and AbilityDict[Ability] ~= 0) then
                 print("Found Ability")
+                if ToggleStore then
+                    for i,v in pairs(getconnections(RerollPath.Question.no.MouseButton1Click)) do
+                        v.Function()
+                    end
+                    wait(1)
+                    for i,v in pairs(getconnections(RerollPath.Question.yes.MouseButton1Click)) do
+                        v.Function()
+                    end
+                    
+                end
                 break
             else
                 while RerollPath.Question.Visible == true do
@@ -507,6 +527,7 @@ local AuraMode = PageKillAura.AddDropdown("Aura Hit Mode",
         AuraMode = value
 end)
 
+--AuraMode.DropdownLabel.Text = "Aura Hit Mode: Punch"
 
 
 local PageRoll = MainUI.AddPage("Roll", false)
@@ -524,6 +545,10 @@ end)
 
 local RollThreshold = PageRoll.AddSlider("Roll Minimum Level (Global)", {Min = 0, Max = 20, Def = 15}, function(value)
     RollThreshold = value
+end)
+
+local AutoStore = PageRoll.AddToggle("Auto Store Ability (NEEDS EMPTY SPACE)", false, function(value)
+    ToggleStore = value
 end)
 
 local LabelRoll = PageRoll.AddLabel("Equipment Roll")
