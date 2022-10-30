@@ -442,7 +442,7 @@ local MainUI = UILibrary.Load("Much Ultra, Very Fair")
 
 local PageFarm = MainUI.AddPage("Farm", false)
     
-local FarmToggle = PageFarm.AddToggle("Toggle Natural Farm", false, function(value)
+local FarmToggle = PageFarm.AddToggle("Auto Farm (Set Aura Hit Mode)", false, function(value)
     ToggleFarm = value
 end)
 
@@ -498,7 +498,7 @@ end)
 
 -- local Label1 = PageKillAura.AddLabel("Choose Aura Mode")
 
-local AuraMode = PageKillAura.AddDropdown("Choose Aura Mode",
+local AuraMode = PageKillAura.AddDropdown("Aura Hit Mode",
     {   
     "Punch (Lowest 150ms)",
     "Dark Blade (Arbiter Only)",
@@ -574,7 +574,7 @@ end
 
 local PageMisc = MainUI.AddPage("Misc", false)
 
-local HideName = PageMisc.AddButton("Hide Identity", function()
+local HideName = PageMisc.AddButton("Hide Identity (Continuous)", function()
     HideName()
     Player.CharacterAdded:Connect(
         HideName()
