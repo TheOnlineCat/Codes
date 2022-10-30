@@ -392,7 +392,6 @@ local function AutoRoll()
             print("rolling")
 
             Rep.Reroll:InvokeServer()
-            wait(1)
             local Rolled
 
             repeat
