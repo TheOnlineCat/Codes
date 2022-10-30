@@ -66,31 +66,37 @@ RunService.Stepped:Connect(
 
 
 local Old = getsenv(Player.PlayerScripts.MoveHandler)
-
-hookfunction(Old.camshake,
+-- Improved Fps Due to these functions fucking up the game go figures
+hookfunction(
+Old.camshake,
 function()
     return
-end)
-
-hookfunction(Old._G.knockback,
+end
+)
+hookfunction(
+Old._G.knockback,
 function()
     return
-end)
-
-hookfunction(Old._G.HitEffect,
+end
+)
+hookfunction(
+Old._G.HitEffect,
 function()
     return
-end)
-
-hookfunction(Old._G.flasheffect,
+end
+)
+hookfunction(
+Old._G.flasheffect,
 function()
     return
-end)
-
-hookfunction(Old.addparticle,
+end
+)
+hookfunction(
+Old.addparticle,
 function()
     return
-end)
+end
+)
 
 
 
@@ -299,10 +305,11 @@ local function Farm()
                             end
                         elseif KillPlayers and CurrentDistance < KillDistance then
                             Hit(Obstacle)
-                        elseif Obstacle.Name == "Barrier" and CurrentDistance < AuraDistance then
-                            Hit(Obstacle)
                         else
                             Player.Character.Humanoid:MoveTo(GetOffsetVector(Enemy))
+                        end
+                        if Obstacle.Name == "Barrier" and CurrentDistance < AuraDistance then
+                            Hit(Obstacle)
                         end
                     end
                     )
@@ -382,11 +389,6 @@ for i, v in pairs(RerollPath.Prompt.Prompt.ScrollingFrame:GetChildren()) do
     end
 end
 
-local function GetInventory()
-    for i, v in pairs(RerollPath.AbilityStorage.ScrollingFrame.StorageTemplate:GetChildren()) do
-        AbilityStore[i] = v
-    end
-end
 
 local function ConvertFloat(stri)
     local number = stri:split(".")
@@ -402,8 +404,12 @@ local function AutoRoll()
             print("rolling")
 
             Rep.Reroll:InvokeServer()
-
+            wait(1)
             local Rolled
+
+            repeat
+                wait()
+            until RerollPath.Question and RerollPath.Rerolling.Ability.TextLabel
 
             repeat
                 Rolled = RerollPath.Rerolling.Ability.TextLabel.Text
