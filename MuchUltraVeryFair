@@ -66,37 +66,25 @@ RunService.Stepped:Connect(
 
 
 local Old = getsenv(Player.PlayerScripts.MoveHandler)
--- Improved Fps Due to these functions fucking up the game go figures
-hookfunction(
-Old.camshake,
-function()
+
+hookfunction(Old.camshake, function()
     return
-end
-)
-hookfunction(
-Old._G.knockback,
-function()
+end)
+
+hookfunction(Old._G.knockback, function()
     return
-end
-)
-hookfunction(
-Old._G.HitEffect,
-function()
+end)
+
+hookfunction(Old._G.HitEffect, function()
     return
-end
-)
-hookfunction(
-Old._G.flasheffect,
-function()
+end)
+hookfunction(Old._G.flasheffect, function()
     return
-end
-)
-hookfunction(
-Old.addparticle,
-function()
+end)
+
+hookfunction(Old.addparticle, function()
     return
-end
-)
+end)
 
 
 
