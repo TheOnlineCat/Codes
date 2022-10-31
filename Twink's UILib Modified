@@ -382,7 +382,7 @@ function UILibrary.Load(GUITitle)
         
         function PageLibrary.AddButton(Text, Callback, Parent, Underline)
             local Button = {}
-            local CallBackFunction = Callback()
+            local CallBackFunction = Callback
             
             local ButtonContainer = Frame()
             ButtonContainer.Name = Text.."BUTTON"
