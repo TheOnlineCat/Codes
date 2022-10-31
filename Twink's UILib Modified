@@ -423,6 +423,13 @@ function UILibrary.Load(GUITitle)
                 HiddenButton.Text = Text
                 CallBackFunction = CallbackNew
             end
+
+            function Button.Destroy()
+                ButtonContainer.Size = UDim2.new(0,0,0,0)
+                ButtonContainer = nil
+                HiddenButton = nil
+            end
+
             return Button
         end
         
@@ -481,15 +488,18 @@ function UILibrary.Load(GUITitle)
             local DropdownList = Instance.new("UIListLayout")
             DropdownList.Parent = DropdownFrame
             
-            local Dropdowns = {}
+            local DropdownButtons = {}
 
-            for OptionIndex, Option in next, DropdownArray do
-                Dropdowns[OptionIndex] = PageLibrary.AddButton(Option, function()
+            local function AddOptions(OptionIndex, Option)
+                DropdownButtons[OptionIndex] = PageLibrary.AddButton(Option, function()
                     Callback(Option)
                     DropdownLabel.Text = Text..": "..Option
-                end, DropdownFrame, OptionIndex < #DropdownArray)
+                end, DropdownFrame, true)
             end
-            
+            for OptionIndex, Option in next, DropdownArray do
+                AddOptions(OptionIndex, Option)
+            end
+
             DropdownExpander.MouseButton1Down:Connect(function()
                 DropdownToggle = not DropdownToggle
                 Tween(DropdownContainer, {Size = DropdownToggle and UDim2.new(1,0,0,20+(#DropdownArray*20)) or UDim2.new(1,0,0,20)})
@@ -498,11 +508,42 @@ function UILibrary.Load(GUITitle)
 
             function DropdownData.SetArray(Array)
                 DropdownArray = Array or {}
-                for index, Button in pairs(Dropdowns) do
-                    Button.Rehook(DropdownArray[index], function()
-                    Callback(DropdownArray[index])
-                    DropdownLabel.Text = Text..": "..DropdownArray[index]
-                    end)
+                if #DropdownArray == #DropdownButtons then
+                    for index, Button in pairs(DropdownButtons) do
+                        Button.Rehook(DropdownArray[index], function()
+                        Callback(DropdownArray[index])
+                        DropdownLabel.Text = Text..": "..DropdownArray[index]
+                        end)
+                    end
+                    Tween(DropdownContainer, {Size = DropdownToggle and UDim2.new(1,0,0,20+(#DropdownArray*20)) or UDim2.new(1,0,0,20)})
+
+                elseif #DropdownArray > #DropdownButtons then
+                    for index, Option in pairs(DropdownArray) do
+                        if index <= #DropdownButtons then
+                            DropdownButtons[index].Rehook(Option, function()
+                            Callback(Option)
+                            DropdownLabel.Text = Text..": "..Option
+                            end)
+                        else
+                            AddOptions(index, Option)
+                        end
+                    end
+                    Tween(DropdownContainer, {Size = DropdownToggle and UDim2.new(1,0,0,20+(#DropdownArray*20)) or UDim2.new(1,0,0,20)})
+
+                elseif #DropdownArray < #DropdownButtons then
+                    for index, Button in pairs(DropdownButtons) do
+                        if index <= #DropdownArray then
+                            Button.Rehook(DropdownArray[index], function()
+                            Callback(DropdownArray[index])
+                            DropdownLabel.Text = Text..": "..DropdownArray[index]
+                            end)
+                        else
+                            Button.Destroy()
+                            DropdownArray[index] = nil
+                            table.remove(DropdownButtons, index)
+                        end
+                    end
+                    Tween(DropdownContainer, {Size = DropdownToggle and UDim2.new(1,0,0,20+(#DropdownArray*20)) or UDim2.new(1,0,0,20)})
                 end
             end
 
@@ -728,4 +769,27 @@ function UILibrary.Load(GUITitle)
     
     return TabLibrary
 end
-return UILibrary
+
+local MainUI = UILibrary.Load("Much Ultra, Very Fair")
+local PageKillAura = MainUI.AddPage("Kill Aura", false)
+local AuraMode = PageKillAura.AddDropdown("Aura Hit Mode",
+    {   
+    "Punch (Lowest 150ms)",
+    "Dark Blade (Arbiter Only)",
+    "Energy Blade"
+    }, function(value)    
+        print(value)   
+end)
+
+local stored = {"new1", "new2", "new3", "new4"}
+local newstore = {"Test1", "Test2"}
+
+local button = PageKillAura.AddButton("Change Array", function()
+    AuraMode.SetArray(stored)
+end)
+    
+
+local but2 = PageKillAura.AddButton("NEW ARRAY", function()
+    AuraMode.SetArray(newstore)
+end)
+    
