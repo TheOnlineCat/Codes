@@ -1,4 +1,3 @@
-repeat wait() until game:IsLoaded()
 getgenv().Get = setmetatable({}, {__index = function(Self, Idx) return game:GetService(Idx) end})
 getgenv().ToggleFarm = false
 getgenv().ToggleKillAura = false
@@ -13,12 +12,12 @@ getgenv().PunchSpeed = 0.15
 getgenv().SelectedQuest = nil
 getgenv().RollAmount = 25
 
-getgenv().AuraMode = false
+getgenv().AuraMode = "Punch (Lowest 150ms)"
 
 getgenv().FarmBoss = false
 
 getgenv().ToggleAutoRoll = false
-getgenv().ToggleStore = true
+getgenv().ToggleStore = false
 getgenv().RollThreshold = 15
 
 
@@ -88,6 +87,8 @@ end)
 
 
 
+
+
 local function ActivateAbility()
     local args = {[1] = false} 
     Rep.ToggleAbility:InvokeServer(unpack(args))
@@ -133,12 +134,15 @@ local function getNearestMobs(Type)
     return Target
 end
 
-local function getNearestObstacles()
+local function getNearestObstacles(barrierOnly)
     local LowestDistance = math.huge
     local Target
     for i, v in ipairs(Workspace:GetChildren()) do
         if v:IsA("Model") and (not(table.find(MobList, v.Name)) or v.Name == "Barrier") and v.Name ~= Player.Name then
             local Enemy = v:FindFirstChildWhichIsA("Humanoid")
+            if barrierOnly and not v.Name == "Barrier" then
+                continue
+            end
             if Enemy and Enemy.Health ~= 0 then
                 local CurrentDistance = (Player.Character.HumanoidRootPart.Position - v:GetModelCFrame().Position).Magnitude
                 if CurrentDistance < LowestDistance then
@@ -281,11 +285,11 @@ local function Farm()
                         local CurrentDistance = (Player.Character.HumanoidRootPart.Position - Enemy:GetModelCFrame().Position).Magnitude
 
                         local Obstacle
-                        Obstacle = getNearestObstacles()
+                        Obstacle = getNearestObstacles(false)
                         if Obstacle.Name ~= "Barrier" and not ((Player.Character.HumanoidRootPart.Position - Obstacle:GetModelCFrame().Position).Magnitude < KillDistance) then
                             EnemyBarrier = false
                         end
-                        if CurrentDistance < AuraDistance and not(EnemyBarrier) then
+                        if CurrentDistance < AuraDistance then
                             local Hp1 = Enemy:FindFirstChildWhichIsA("Humanoid").Health
                             Hit(Enemy)
                             if (Hp1 - Enemy:FindFirstChildWhichIsA("Humanoid").Health) == 0 then
@@ -296,7 +300,7 @@ local function Farm()
                         else
                             Player.Character.Humanoid:MoveTo(GetOffsetVector(Enemy))
                         end
-                        if Obstacle.Name == "Barrier" and CurrentDistance < AuraDistance then
+                        if Obstacle.Name == "Barrier" and CurrentDistance < AuraDistance and EnemyBarrier then
                             Hit(Obstacle)
                         end
                     end
@@ -317,9 +321,10 @@ end
 
 
 B = Workspace:FindFirstChild("BossSpawns") --Get enemy names and stats
+local BreakBarrier = false
 local BossList = {}
 local BossPosition = B:GetChildren()[1].CFrame.Position
-for i, v in B:GetChildren() do
+for i, v in pairs(B:GetChildren()) do
     table.insert(BossList, v.Name) --append name to list
 end
 
@@ -344,15 +349,21 @@ local function BossFarm()
                         v.Function()
                     end
                     
-                    while Boss.Humanoid.Health ~= 0 and FarmBoss do
+                    while Boss.Humanoid.Health ~= 0 and FarmBoss and Boss do
                         if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
                             ActivateAbility()
                         end
                         BossFight = true
+
+                        local Barrier = getNearestObstacles(true)
+
                         if (Player.Character.HumanoidRootPart.Position - Boss:GetModelCFrame().Position).Magnitude  < KillDistance then
                             Hit(Boss)
-                        else
+                        else 
                             Player.Character.Humanoid:MoveTo(GetOffsetVector(Boss))
+                        end
+                        if (Player.Character.HumanoidRootPart.Position - Barrier:GetModelCFrame().Position).Magnitude < KillDistance  and BreakBarrier then
+                            Hit(Barrier)
                         end
                         wait(0.1)
                     end
@@ -370,12 +381,16 @@ getgenv().ReplaceAbility = nil
 local RerollPath = Player.PlayerGui.Reroll
 local AbilityList = {}
 local AbilityStore = {}
+local StoredNames = {}
+
 for i, v in pairs(RerollPath.Prompt.Prompt.ScrollingFrame:GetChildren()) do
     if v:IsA("TextButton") then
         table.insert(AbilityList, v.Name)
         AbilityDict[v.Name] = 0
+
     end
 end
+
 
 
 local function ConvertFloat(stri)
@@ -383,6 +398,17 @@ local function ConvertFloat(stri)
     local decimal = tonumber(number[2])/10
     local float = number[1] + decimal
     return (float)
+end
+
+local function no()
+    for i,v in pairs(getconnections(RerollPath.Question.no.MouseButton1Click)) do
+        v.Function()
+    end
+end
+local function yes()
+    for i,v in pairs(getconnections(RerollPath.Question.yes.MouseButton1Click)) do
+        v.Function()
+    end
 end
 
 
@@ -394,15 +420,13 @@ local function AutoRoll()
             Rep.Reroll:InvokeServer()
             local Rolled
 
-            repeat
-                wait()
-            until RerollPath.Question and RerollPath.Rerolling.Ability.TextLabel
+            print("rolling2")
 
             repeat
                 Rolled = RerollPath.Rerolling.Ability.TextLabel.Text
                 wait()
             until RerollPath.Question.Visible == true
-
+            
             local Level = Rolled:split("(")[2]:split(")")[1]
             local Ability = string.gsub(Rolled:split("(")[1], "%s+$", "")
 
@@ -413,21 +437,29 @@ local function AutoRoll()
             if (Level >= RollThreshold) or (Level>= AbilityDict[Ability] and AbilityDict[Ability] ~= 0) then
                 print("Found Ability")
                 if ToggleStore then
-                    for i,v in pairs(getconnections(RerollPath.Question.no.MouseButton1Click)) do
-                        v.Function()
-                    end
-                    wait(1)
-                    for i,v in pairs(getconnections(RerollPath.Question.yes.MouseButton1Click)) do
-                        v.Function()
+                    no()
+                    wait(0.4)
+                    yes()
+                    wait(0.4)
+                    for i, v in AbilityStore do
+                        if ReplaceAbility == v.TextLabel.Text then
+                            spawn(function()
+                                for i2,v2 in pairs(getconnections(v.MouseButton1Click)) do
+                                        v2.Function()
+                                end
+                            end)
+
+                            wait(0.5)
+                            yes()
+                            break
+                        end
                     end
                     
                 end
                 break
             else
                 while RerollPath.Question.Visible == true do
-                    for i,v in pairs(getconnections(RerollPath.Question.no.MouseButton1Click)) do
-                        v.Function()
-                    end
+                    no()
                     wait(0.2)
                 end
             end
@@ -443,7 +475,7 @@ Farm()
 
 
 
-local UILibrary = loadstring(game:HttpGet("https://pastebin.com/raw/V1ca2q9s"))()
+local UILibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/TheOnlineCat/Codes/main/Twink's%20UILib%20Modified", true))()
 
 local MainUI = UILibrary.Load("Much Ultra, Very Fair")
 
@@ -512,9 +544,8 @@ local AuraMode = PageKillAura.AddDropdown("Aura Hit Mode",
     "Energy Blade"
     }, function(value)
         AuraMode = value
-end)
+end, "Punch (Lowest 150ms)")
 
---AuraMode.DropdownLabel.Text = "Aura Hit Mode: Punch"
 
 
 local PageRoll = MainUI.AddPage("Roll", false)
@@ -530,13 +561,43 @@ local ToggleAutoRoll = PageRoll.AddToggle("Auto Roll Ability", false, function(v
     end
 end)
 
+
 local RollThreshold = PageRoll.AddSlider("Roll Minimum Level (Global)", {Min = 0, Max = 20, Def = 15}, function(value)
     RollThreshold = value
 end)
 
-local AutoStore = PageRoll.AddToggle("Auto Store Ability (NEEDS EMPTY SPACE)", false, function(value)
+ 
+local ReplaceSelect = PageRoll.AddDropdown("Replace Ability",
+    {
+        "LOAD"
+    }, function(value)
+        ReplaceAbility = value
+        
+
+end)
+
+
+spawn(function()
+    while true do
+        StoredNames = {}
+        for i, v in pairs(RerollPath.AbilityStorage.ScrollingFrame:GetChildren()) do
+            if v:IsA("TextButton") and v then
+                AbilityStore[i] = v
+                table.insert(StoredNames, v.TextLabel.Text)
+            end
+        end
+        ReplaceSelect.SetArray(StoredNames)
+        wait(0.3)
+    end
+end)
+
+
+
+
+local AutoStore = PageRoll.AddToggle("Auto Replace Ability", false, function(value)
     ToggleStore = value
 end)
+
 
 local LabelRoll = PageRoll.AddLabel("Equipment Roll")
 
@@ -591,6 +652,10 @@ local HideName = PageMisc.AddButton("Hide Identity (Continuous)", function()
     Player.CharacterAdded:Connect(
         HideName()
     )
+end)
+
+local AttackBarrier = PageMisc.AddToggle("Damage Arlo Boss Barrier", false, function(value)
+    BreakBarrier = value
 end)
 
 local Reset = PageMisc.AddButton("Reset Character", function()
