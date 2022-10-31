@@ -770,26 +770,4 @@ function UILibrary.Load(GUITitle)
     return TabLibrary
 end
 
-local MainUI = UILibrary.Load("Much Ultra, Very Fair")
-local PageKillAura = MainUI.AddPage("Kill Aura", false)
-local AuraMode = PageKillAura.AddDropdown("Aura Hit Mode",
-    {   
-    "Punch (Lowest 150ms)",
-    "Dark Blade (Arbiter Only)",
-    "Energy Blade"
-    }, function(value)    
-        print(value)   
-end)
-
-local stored = {"new1", "new2", "new3", "new4"}
-local newstore = {"Test1", "Test2"}
-
-local button = PageKillAura.AddButton("Change Array", function()
-    AuraMode.SetArray(stored)
-end)
-    
-
-local but2 = PageKillAura.AddButton("NEW ARRAY", function()
-    AuraMode.SetArray(newstore)
-end)
-    
+return UILibrary
