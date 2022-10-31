@@ -461,7 +461,7 @@ function UILibrary.Load(GUITitle)
 			DropdownLabel.Parent = DropdownForeground
 
             if Default then
-                DropdownLabel = Text.. ": ".. Default
+            DropdownLabel = Text.. ": ".. Default
             end
 
 			
@@ -487,16 +487,16 @@ function UILibrary.Load(GUITitle)
 				Tween(DropdownExpander, {Rotation = DropdownToggle and 135 or 0})
 			end)
 
-            function PageLibrary.DropdownArray.SetArray(Array)
-                DropdownArray = ConfigurationArray or {}
+		    function PageLibrary.DropdownArray.SetArray(Array)
+				DropdownArray = ConfigurationArray or {}
 
-                for OptionIndex, Option in next, DropdownArray do
-                    PageLibrary.AddButton(Option, function()
-                        Callback(Option)
-                        DropdownLabel.Text = Text..": "..Option
-                    end, DropdownFrame, OptionIndex < #DropdownArray)
-                end
-            end
+				for OptionIndex, Option in next, DropdownArray do
+			    	PageLibrary.AddButton(Option, function()
+					Callback(Option)
+					DropdownLabel.Text = Text..": "..Option
+			    	end, DropdownFrame, OptionIndex < #DropdownArray)
+			    end
+		    end
 
 		end
 		
