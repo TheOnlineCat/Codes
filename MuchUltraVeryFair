@@ -648,10 +648,12 @@ end
 local PageMisc = MainUI.AddPage("Misc", false)
 
 local HideName = PageMisc.AddButton("Hide Identity (Continuous)", function()
-    HideName()
-    Player.CharacterAdded:Connect(
-        HideName()
-    )
+	spawn(function()
+		while true do
+    		HideName()
+    		wait(1)
+    	end
+	end)
 end)
 
 local AttackBarrier = PageMisc.AddToggle("Damage Arlo Boss Barrier", false, function(value)
@@ -661,4 +663,3 @@ end)
 local Reset = PageMisc.AddButton("Reset Character", function()
     Player.Character.Humanoid.Health = 0
 end)
-
