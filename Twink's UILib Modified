@@ -728,3 +728,4 @@ function UILibrary.Load(GUITitle)
     
     return TabLibrary
 end
+return UILibrary
