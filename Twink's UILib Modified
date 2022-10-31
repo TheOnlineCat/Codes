@@ -461,7 +461,7 @@ function UILibrary.Load(GUITitle)
             DropdownLabel.Parent = DropdownForeground
 
             if Default then
-            DropdownLabel = Text.. ": ".. Default
+                DropdownLabel = Text.. ": ".. Default
             end
 
             
