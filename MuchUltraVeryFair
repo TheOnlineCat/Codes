@@ -449,24 +449,22 @@ end
 local function AutoRoll()
     spawn(function()
         while wait() and Toggles.AutoRoll do
-
-            Rep.Reroll:InvokeServer()
+            spawn(function()
+                Rep.Reroll:InvokeServer()
+            end)
             local Rolled
-
 
             while RerollPath.Rerolling.Ability.TextLabel.Text and not(RerollPath.Question.Visible) do
                     Rolled = RerollPath.Rerolling.Ability.TextLabel.Text
                     wait()
             end
 
-            
             local Level = Rolled:split("(")[2]:split(")")[1]
             local Ability = string.gsub(Rolled:split("(")[1], "%s+$", "")
 
             print("Rolled ".. Ability.. " " .. Level .. " | out of minimum | ".. AbilityDict[Ability])
             Level = ConvertFloat(Level)
-            
-
+        
             if (Level >= RollSettings.Threshold) or (Level>= AbilityDict[Ability] and AbilityDict[Ability] ~= 0) then
                 print("Found Ability")
                 if Toggles.Store then
@@ -706,4 +704,3 @@ end)
 local Reset = PageMisc.AddButton("Reset Character", function()
     Player.Character.Humanoid.Health = 0
 end)
-
