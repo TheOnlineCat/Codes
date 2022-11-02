@@ -321,7 +321,7 @@ local function Farm()
                             if (Hp1 - Enemy:FindFirstChildWhichIsA("Humanoid").Health) == 0 then
                                 EnemyBarrier = true
                             end
-                        elseif KillPlayers and Obstacle and (Player.Character.HumanoidRootPart.Position - Obstacle:GetModelCFrame().Position).Magnitude < AuraSettings.KillDistance then
+                        elseif FarmSettings.KillPlayers and Obstacle and (Player.Character.HumanoidRootPart.Position - Obstacle:GetModelCFrame().Position).Magnitude < AuraSettings.KillDistance then
                             Hit(Obstacle)
                         else
                             Player.Character.Humanoid:MoveTo(GetOffsetVector(Enemy))
