@@ -1,67 +1,75 @@
 getgenv().Get = setmetatable({}, {__index = function(Self, Idx) return game:GetService(Idx) end})
-getgenv().ToggleFarm = false
-getgenv().ToggleKillAura = false
-getgenv().ToggleMobAura = false
 
-getgenv().AuraDistance = 6
-getgenv().FarmDistance = 3
-getgenv().KillPlayers = true
-getgenv().KillDistance = 12
+getgenv().Toggles = {
+    Farm = false,
+    KillAura = false,
+    MobAura = false,
+    AutoRoll = false,
+    Store = false,
+    FarmBoss = false,
+    BreakBarrier = false
+}
 
-getgenv().PunchSpeed = 0.15
-getgenv().SelectedQuest = nil
-getgenv().RollAmount = 25
+getgenv().FarmSettings = {
+    AuraDistance = 6,
+    FarmDistance = 3,
+    KillPlayers = true,
+    SelectedQuest = nil
+}
 
-getgenv().AuraMode = "Punch (Lowest 150ms)"
+getgenv().AuraSettings = {
+    PunchSpeed = 0.15,
+    KillDistance = 12,
+    Mode = "Punch (Lowest 150ms)"
+}
 
-getgenv().FarmBoss = false
 
-getgenv().ToggleAutoRoll = false
-getgenv().ToggleStore = false
-getgenv().RollThreshold = 15
-
+getgenv().RollSettings = {
+    Amount = 25,
+    Threshold = 15
+}
 
 
 local Players = Get.Players
 local Player = Players.LocalPlayer
-
-
 local Workspace = Get.Workspace
-
 local RunService = Get.RunService
-local Rep = game:GetService("ReplicatedStorage")
+local Rep = Get.ReplicatedStorage
+local HttpService = Get.HttpService
 
 
+local function Save(File, Table)
+    if (writefile) then
+        local json = HttpService:JSONEncode(Table)
+        writefile("UU_"..File..".txt", json)
+    else
+        print("Saving Not Supported")
+    end
+end
+
+local function Load(File)
+    if not (readfile and isfile) then
+        print("Loading Not Supported")
+        --File Reading Not supported
+        return
+    end
+    if isfile("UU_"..File..".txt") then
+        print("Found File")
+        Table = HttpService:JSONDecode(readfile("UU_"..File..".txt"))
+        print("Settings Loaded")
+        return(Table)
+    end
+end
+
+AuraSettings = Load("AuraSettings")
+RollSettings = Load("RollSettings")
+FarmSettings = Load("FarmSettings")
 
 local VirtualUser=game:service'VirtualUser'
 game:service'Players'.LocalPlayer.Idled:connect(function()
 VirtualUser:CaptureController()
 VirtualUser:ClickButton2(Vector2.new())
 end)
-
---Hide Name
-function HideName()
-    for i,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-        if v.ClassName == "BillboardGui" then
-            v:Destroy()
-        end
-    end
-end
-
-
-
-
-RunService.Stepped:Connect(
-   function()
-       if ToggleFarm then
-           for i, v in pairs(Player.Character:GetChildren()) do
-               if v:IsA("BasePart") then
-                   v.CanCollide = false
-               end
-           end
-       end
-   end
-)
 
 
 local Old = getsenv(Player.PlayerScripts.MoveHandler)
@@ -86,12 +94,12 @@ hookfunction(Old.addparticle, function()
 end)
 
 
-
-
-
-local function ActivateAbility()
-    local args = {[1] = false} 
-    Rep.ToggleAbility:InvokeServer(unpack(args))
+function HideName()
+    for i,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+        if v.ClassName == "BillboardGui" then
+            v:Destroy()
+        end
+    end
 end
 
 
@@ -102,20 +110,39 @@ for i, v in pairs(A) do
 end
 
 
+RunService.Stepped:Connect(
+   function()
+       if Toggles.Farm then
+           for i, v in pairs(Player.Character:GetChildren()) do
+               if v:IsA("BasePart") then
+                   v.CanCollide = false
+               end
+           end
+       end
+   end
+)
+
+
+local function ActivateAbility()
+    local args = {[1] = false} 
+    Rep.ToggleAbility:InvokeServer(unpack(args))
+end
+
+
 local function getNearestMobs(Type)
     local LowestDistance = math.huge
     local Target
     for i, v in ipairs(Workspace:GetChildren()) do
         if v:IsA("Model")  then
-            if ToggleFarm then
+            if Toggles.Farm then
                 if not(table.find(Type, v.Name)) then
                     continue
                 end
-            elseif ToggleMobAura then
+            elseif Toggles.MobAura then
                 if not(table.find(MobList, v.Name)) then
                     continue
                 end
-            elseif ToggleKillAura then
+            elseif Toggles.KillAura then
                 if not(v:FindFirstChildWhichIsA("Humanoid")) or v.Name == Player.Name then
                     continue
                 end
@@ -160,16 +187,16 @@ end
 local function Punch(Enemy)
     if Enemy.Name == "Barrier" then
             Rep.Punch:FireServer(Enemy:FindFirstChildWhichIsA("Humanoid"), 6, Player.Character.Cancellations.Value, nil, 2)
-            if (PunchSpeed >= 0.15) then
-                wait(PunchSpeed)
+            if (AuraSettings.PunchSpeed >= 0.15) then
+                wait(AuraSettings.PunchSpeed)
             else
                 wait(0.15)
             end
     else
         for i = 1, 5 do
             Rep.Punch:FireServer(Enemy:FindFirstChildWhichIsA("Humanoid"), i, Player.Character.Cancellations.Value, nil, 3)
-            if (PunchSpeed >= 0.15) then
-                wait(PunchSpeed)
+            if (AuraSettings.PunchSpeed >= 0.15) then
+                wait(AuraSettings.PunchSpeed)
             else
                 wait(0.15)
             end
@@ -185,14 +212,14 @@ local function ArbiterHit(Enemy)
     Rep.Damage:FireServer(unpack(args))
 end
 
-local function ArbiterUlt(Enemy)
-    local args = {
-        [1] = "Dark Blade",
-        [2] = Enemy:FindFirstChildWhichIsA("Humanoid"),
-        [4] = {["Ultimate"] = true}
-    }
-    Rep.Damage:FireServer(unpack(args))
-end
+-- local function ArbiterUlt(Enemy)
+--     local args = {
+--         [1] = "Dark Blade",
+--         [2] = Enemy:FindFirstChildWhichIsA("Humanoid"),
+--         [4] = {["Ultimate"] = true}
+--     }
+--     Rep.Damage:FireServer(unpack(args))
+-- end
 
 local function EnergyBlade(Enemy)
     local args = {
@@ -209,14 +236,14 @@ end
 
 
 local function Hit(Enemy)
-    if AuraMode == "Punch (Lowest 150ms)" then
+    if AuraSettings.Mode == "Punch (Lowest 150ms)" then
         Punch(Enemy)
-    elseif AuraMode == "Dark Blade (Arbiter Only)" then
+    elseif AuraSettings.Mode == "Dark Blade (Arbiter Only)" then
         ArbiterHit(Enemy)
-        wait(PunchSpeed)
-    elseif AuraMode == "Energy Blade" then
+        wait(AuraSettings.PunchSpeed)
+    elseif AuraSettings.Mode == "Energy Blade" then
         EnergyBlade(Enemy)
-        wait(PunchSpeed)
+        wait(AuraSettings.PunchSpeed)
     end
 end
 
@@ -250,24 +277,23 @@ local function GetOffsetVector(Enemy)
     local Vector = Player.Character.HumanoidRootPart.Position - Enemy:GetModelCFrame().Position
     local Distance = (Vector).Magnitude
     local Normal = Vector3.new(Vector.x/Distance, Vector.y/Distance, Vector.z/Distance)
-    local Offset = Normal * FarmDistance
+    local Offset = Normal * FarmSettings.FarmDistance
     local NewPosition = Enemy:GetModelCFrame().Position + Offset
     return NewPosition
 end
 
-local BossFight = false
+getgenv().BossFight = false
 local EnemyBarrier = false
 
 local function Farm()
     spawn(function()
         while wait() do
             if not BossFight then
-                if ToggleFarm then
+                if Toggles.Farm then
                     
                     pcall(function()
-                    
                         if not Player.PlayerGui.MainClient.Quest.visible then
-                            Quest(SelectedQuest)
+                            Quest(FarmSettings.SelectedQuest)
                         else
                             local QuestCount = Player.PlayerGui.MainClient.Quest.Folder.Objective.progress.text:split("/")
                             if QuestCount[1] == QuestCount[2] then
@@ -280,38 +306,41 @@ local function Farm()
                             ActivateAbility()
                         end
 
-                        local EnemyType = GetQuestMobs(SelectedQuest)
+                        local EnemyType = GetQuestMobs(FarmSettings.SelectedQuest)
                         local Enemy = getNearestMobs(EnemyType)
                         local CurrentDistance = (Player.Character.HumanoidRootPart.Position - Enemy:GetModelCFrame().Position).Magnitude
 
                         local Obstacle
                         Obstacle = getNearestObstacles(false)
-                        if Obstacle.Name ~= "Barrier" and not ((Player.Character.HumanoidRootPart.Position - Obstacle:GetModelCFrame().Position).Magnitude < KillDistance) then
+                        if Obstacle.Name ~= "Barrier" and not ((Player.Character.HumanoidRootPart.Position - Obstacle:GetModelCFrame().Position).Magnitude < AuraSettings.KillDistance) then
                             EnemyBarrier = false
                         end
-                        if CurrentDistance < AuraDistance then
+                        if CurrentDistance < FarmSettings.AuraDistance then
                             local Hp1 = Enemy:FindFirstChildWhichIsA("Humanoid").Health
                             Hit(Enemy)
                             if (Hp1 - Enemy:FindFirstChildWhichIsA("Humanoid").Health) == 0 then
                                 EnemyBarrier = true
                             end
-                        elseif KillPlayers and CurrentDistance < KillDistance then
+                        elseif KillPlayers and Obstacle and (Player.Character.HumanoidRootPart.Position - Obstacle:GetModelCFrame().Position).Magnitude < AuraSettings.KillDistance then
                             Hit(Obstacle)
                         else
                             Player.Character.Humanoid:MoveTo(GetOffsetVector(Enemy))
                         end
-                        if Obstacle.Name == "Barrier" and CurrentDistance < AuraDistance and EnemyBarrier then
+                        if Obstacle.Name == "Barrier" and CurrentDistance < FarmSettings.AuraDistance and EnemyBarrier then
                             Hit(Obstacle)
                         end
                     end
                     )
-                elseif (ToggleKillAura or ToggleMobAura) and not ToggleFarm then
+
+                elseif (Toggles.KillAura or Toggles.MobAura) and not Toggles.Farm then
+
                     pcall(function()
                         local Enemy = getNearestMobs()
-                        if (Player.Character.HumanoidRootPart.Position - Enemy:GetModelCFrame().Position).Magnitude < KillDistance then
+                        if (Player.Character.HumanoidRootPart.Position - Enemy:GetModelCFrame().Position).Magnitude < AuraSettings.KillDistance then
                             Hit(Enemy)
                         end
                     end)
+
                 end
             end
         end
@@ -321,7 +350,6 @@ end
 
 
 B = Workspace:FindFirstChild("BossSpawns") --Get enemy names and stats
-local BreakBarrier = false
 local BossList = {}
 local BossPosition = B:GetChildren()[1].CFrame.Position
 for i, v in pairs(B:GetChildren()) do
@@ -341,35 +369,40 @@ end
 
 local function BossFarm()
     spawn(function()
-        while wait() and FarmBoss do
+        while wait() and Toggles.FarmBoss do
             pcall(function()
                 if Player.PlayerGui.Boss.Enabled == true then
+                    BossFight = true
                     local Boss = LocateBoss()
+                    wait(0.1)
                     for i,v in pairs(getconnections(Player.PlayerGui.Reroll.bosstp.Yes.MouseButton1Click)) do
                         v.Function()
                     end
                     
-                    while Boss.Humanoid.Health ~= 0 and FarmBoss and Boss do
-                        if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
-                            ActivateAbility()
-                        end
-                        BossFight = true
+                    pcall(function()
+                        while Boss.Humanoid.Health > 0 and Toggles.FarmBoss and Boss do
+                            Boss = LocateBoss()
+                            if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
+                                ActivateAbility()
+                            end
 
-                        local Barrier = getNearestObstacles(true)
-
-                        if (Player.Character.HumanoidRootPart.Position - Boss:GetModelCFrame().Position).Magnitude  < KillDistance then
-                            Hit(Boss)
-                        else 
-                            Player.Character.Humanoid:MoveTo(GetOffsetVector(Boss))
+                            if (Player.Character.HumanoidRootPart.Position - Boss:GetModelCFrame().Position).Magnitude  < AuraSettings.KillDistance then
+                                Hit(Boss)
+                            else 
+                                Player.Character.Humanoid:MoveTo(GetOffsetVector(Boss))
+                                wait(0.1)
+                            end
+                            if Toggles.BreakBarrier then
+                                local Barrier = getNearestObstacles(true)
+                                if (Player.Character.HumanoidRootPart.Position - Barrier:GetModelCFrame().Position).Magnitude < AuraSettings.KillDistance  then
+                                    Hit(Barrier)
+                                end
+                            end
                         end
-                        if (Player.Character.HumanoidRootPart.Position - Barrier:GetModelCFrame().Position).Magnitude < KillDistance  and BreakBarrier then
-                            Hit(Barrier)
-                        end
-                        wait(0.1)
-                    end
+                    end)
                     BossFight = false
-                    
                 end
+                wait(0.1)
             end)
         end
     end)
@@ -383,15 +416,16 @@ local AbilityList = {}
 local AbilityStore = {}
 local StoredNames = {}
 
+
+AbilityDict = Load("AbilityFilter")
 for i, v in pairs(RerollPath.Prompt.Prompt.ScrollingFrame:GetChildren()) do
     if v:IsA("TextButton") then
         table.insert(AbilityList, v.Name)
-        AbilityDict[v.Name] = 0
-
+        if not (AbilityDict[v.Name]) then
+            AbilityDict[v.Name] = 0
+        end
     end
 end
-
-
 
 local function ConvertFloat(stri)
     local number = stri:split(".")
@@ -414,18 +448,17 @@ end
 
 local function AutoRoll()
     spawn(function()
-        while wait() and ToggleAutoRoll do
-            print("rolling")
+        while wait() and Toggles.AutoRoll do
 
             Rep.Reroll:InvokeServer()
             local Rolled
 
-            print("rolling2")
 
-            repeat
-                Rolled = RerollPath.Rerolling.Ability.TextLabel.Text
-                wait()
-            until RerollPath.Question.Visible == true
+            while RerollPath.Rerolling.Ability.TextLabel.Text and not(RerollPath.Question.Visible) do
+                    Rolled = RerollPath.Rerolling.Ability.TextLabel.Text
+                    wait()
+            end
+
             
             local Level = Rolled:split("(")[2]:split(")")[1]
             local Ability = string.gsub(Rolled:split("(")[1], "%s+$", "")
@@ -434,9 +467,9 @@ local function AutoRoll()
             Level = ConvertFloat(Level)
             
 
-            if (Level >= RollThreshold) or (Level>= AbilityDict[Ability] and AbilityDict[Ability] ~= 0) then
+            if (Level >= RollSettings.Threshold) or (Level>= AbilityDict[Ability] and AbilityDict[Ability] ~= 0) then
                 print("Found Ability")
-                if ToggleStore then
+                if Toggles.Store then
                     no()
                     wait(0.4)
                     yes()
@@ -482,23 +515,26 @@ local MainUI = UILibrary.Load("Much Ultra, Very Fair")
 local PageFarm = MainUI.AddPage("Farm", false)
     
 local FarmToggle = PageFarm.AddToggle("Auto Farm (Set Aura Hit Mode)", false, function(value)
-    ToggleFarm = value
+    Toggles.Farm = value
 end)
 
-local SliderFarmDistance = PageFarm.AddSlider("Farm Distance", {Min = 0, Max = 15, Def = 3}, function(value)
-    FarmDistance = value
+local SliderFarmDistance = PageFarm.AddSlider("Farm Distance", {Min = 0, Max = 15, Def = FarmSettings.FarmDistance}, function(value)
+    FarmSettings.FarmDistance = value
+    Save("FarmSettings", FarmSettings)
 end)
 
-local SliderAuraDistance = PageFarm.AddSlider("Farm Aura Distance", {Min = 0, Max = 20, Def = 6}, function(value)
-    AuraDistance = value
+local SliderAuraDistance = PageFarm.AddSlider("Farm Aura Distance", {Min = 0, Max = 20, Def = FarmSettings.AuraDistance}, function(value)
+    FarmSettings.AuraDistance = value
+    Save("FarmSettings", FarmSettings)
 end)
 
-local KillToggle = PageFarm.AddToggle("Kill Players while Farming (Uses Kill Aura Distance)", true, function(value)
-    KillPlayers = value
+local KillToggle = PageFarm.AddToggle("Kill Players while Farming (Uses Kill Aura Distance)", FarmSettings.KillPlayers, function(value)
+    FarmSettings.KillPlayers = value
+    Save("FarmSettings", FarmSettings)
 end)
 
 local BossToggle = PageFarm.AddToggle("Auto Boss Kill", false, function(value)
-    FarmBoss = value
+    Toggles.FarmBoss = value
     if value then
         BossFarm()
     end
@@ -511,28 +547,31 @@ local QuestSelect = PageFarm.AddDropdown("Quest Select", {
     "Rigged Game",
     "Trouble in the backrooms"
     }, function(value)
-        SelectedQuest = value
-end)
+        FarmSettings.SelectedQuest = value
+        Save("FarmSettings", FarmSettings)
+end, FarmSettings.SelectedQuest)
 
 
 
 local PageKillAura = MainUI.AddPage("Kill Aura", false)
 
 local KillAuraToggle = PageKillAura.AddToggle("Kill Aura", false, function(value)
-    ToggleKillAura = value
+    Toggles.KillAura = value
 
 end)
 
 local MobAuraToggle = PageKillAura.AddToggle("Only Mob Kill Aura (Overrides Kill Aura)", false, function(value)
-    ToggleMobAura = value
+    Toggles.MobAura = value
 end)
 
-local SliderKillDistance = PageKillAura.AddSlider("Kill Aura Distance", {Min = 0, Max = 16, Def = 12}, function(value)
-    KillDistance = value
+local SliderKillDistance = PageKillAura.AddSlider("Kill Aura Distance", {Min = 0, Max = 16, Def = AuraSettings.KillDistance}, function(value)
+    AuraSettings.KillDistance = value
+    Save("AuraSettings", AuraSettings)
 end)
 
-local SliderPunchSpeed = PageKillAura.AddSlider("Hit Speed (ms)", {Min = 15, Max = 3000, Def = 150}, function(value)
-    PunchSpeed = value/1000
+local SliderPunchSpeed = PageKillAura.AddSlider("Hit Speed (ms)", {Min = 15, Max = 3000, Def = AuraSettings.PunchSpeed * 1000}, function(value)
+    AuraSettings.PunchSpeed = value/1000
+    Save("AuraSettings", AuraSettings)
 end)
 
 -- local Label1 = PageKillAura.AddLabel("Choose Aura Mode")
@@ -543,8 +582,9 @@ local AuraMode = PageKillAura.AddDropdown("Aura Hit Mode",
     "Dark Blade (Arbiter Only)",
     "Energy Blade"
     }, function(value)
-        AuraMode = value
-end, "Punch (Lowest 150ms)")
+        AuraSettings.Mode = value
+        Save("AuraSettings", AuraSettings)
+end, AuraSettings.Mode)
 
 
 
@@ -555,15 +595,16 @@ local RollAbility = PageRoll.AddButton("Roll Ability", function()
 end)
 
 local ToggleAutoRoll = PageRoll.AddToggle("Auto Roll Ability", false, function(value)
-    ToggleAutoRoll = value
+    Toggles.AutoRoll = value
     if value then
         AutoRoll()
     end
 end)
 
 
-local RollThreshold = PageRoll.AddSlider("Roll Minimum Level (Global)", {Min = 0, Max = 20, Def = 15}, function(value)
-    RollThreshold = value
+local RollThreshold = PageRoll.AddSlider("Roll Minimum Level (Global)", {Min = 0, Max = 20, Def = RollSettings.Threshold}, function(value)
+    RollSettings.Threshold = value
+    Save("RollSettings", RollSettings)
 end)
 
  
@@ -595,14 +636,14 @@ end)
 
 
 local AutoStore = PageRoll.AddToggle("Auto Replace Ability", false, function(value)
-    ToggleStore = value
+    Toggles.Store = value
 end)
 
 
 local LabelRoll = PageRoll.AddLabel("Equipment Roll")
 
 local RollFist = PageRoll.AddButton("Roll Fist", function()
-    for i = 1, RollAmount do
+    for i = 1, RollSettings.Amount do
         local args = {
             [1] = "Fist"
         }
@@ -612,7 +653,7 @@ local RollFist = PageRoll.AddButton("Roll Fist", function()
 end)
 
 local RollStyle = PageRoll.AddButton("Roll Style", function()
-    for i = 1, RollAmount do
+    for i = 1, RollSettings.Amount do
         local args = {
             [1] = "Relic"
         }
@@ -621,8 +662,9 @@ local RollStyle = PageRoll.AddButton("Roll Style", function()
     end
 end)
 
-local SliderGear = PageRoll.AddSlider("Equipment Roll Amount", {Min = 0, Max = 100, Def = 25}, function(value)
-    RollAmount = value
+local SliderGear = PageRoll.AddSlider("Equipment Roll Amount", {Min = 0, Max = 100, Def = RollSettings.Amount}, function(value)
+    RollSettings.Amount = value
+    Save("RollSettings", RollSettings)
 end)
 
 
@@ -638,8 +680,9 @@ end)
 local AbilitySliders = {}
 
 for i, v in pairs(AbilityList) do
-    table.insert(AbilitySliders, (PageAutoRoll.AddSlider(v, {Min = 0, Max = 20, Def = 0}, function(value)
+    table.insert(AbilitySliders, (PageAutoRoll.AddSlider(v, {Min = 0, Max = 20, Def = AbilityDict[v]}, function(value)
         AbilityDict[v] = value
+        Save("AbilityFilter", AbilityDict)
     end)))
 end
 
@@ -657,9 +700,10 @@ local HideName = PageMisc.AddButton("Hide Identity (Continuous)", function()
 end)
 
 local AttackBarrier = PageMisc.AddToggle("Damage Arlo Boss Barrier", false, function(value)
-    BreakBarrier = value
+    Toggles.BreakBarrier = value
 end)
 
 local Reset = PageMisc.AddButton("Reset Character", function()
     Player.Character.Humanoid.Health = 0
 end)
+
