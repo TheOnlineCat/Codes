@@ -1,3 +1,4 @@
+--thanks to DekuDimz and Anyx, used some of their script for some help 
 getgenv().Get = setmetatable({}, {__index = function(Self, Idx) return game:GetService(Idx) end})
 
 getgenv().Toggles = {
@@ -182,25 +183,21 @@ local function getNearestObstacles(barrierOnly)
     return Target
 end
 
+local function check(e)
+    local script = Player.PlayerGui.MainClient.LocalScript
+    if getfenv(e) and getfenv(e).script and getfenv(e).script.Name and getfenv(e).script == script then
+        return true
+    else
+        return false
+    end
+end
 
+getgenv().Attack = nil
 
 local function Punch(Enemy)
-    if Enemy.Name == "Barrier" then
-            Rep.Punch:FireServer(Enemy:FindFirstChildWhichIsA("Humanoid"), 6, Player.Character.Cancellations.Value, nil, 2)
-            if (AuraSettings.PunchSpeed >= 0.15) then
-                wait(AuraSettings.PunchSpeed)
-            else
-                wait(0.15)
-            end
-    else
-        for i = 1, 5 do
-            Rep.Punch:FireServer(Enemy:FindFirstChildWhichIsA("Humanoid"), i, Player.Character.Cancellations.Value, nil, 3)
-            if (AuraSettings.PunchSpeed >= 0.15) then
-                wait(AuraSettings.PunchSpeed)
-            else
-                wait(0.15)
-            end
-        end
+    --some script i edited for attack (from Anyx)
+    if Attack then
+        getgenv().Attack(Vector3.new(10,10,10),CFrame.new(0,0,-4),6,nil)
     end
 end
 
@@ -238,6 +235,11 @@ end
 local function Hit(Enemy)
     if AuraSettings.Mode == "Punch (Lowest 150ms)" then
         Punch(Enemy)
+        if (AuraSettings.PunchSpeed>= 0.15) then
+            wait(AuraSettings.PunchSpeed)
+        else
+            wait(0.15)
+        end
     elseif AuraSettings.Mode == "Dark Blade (Arbiter Only)" then
         ArbiterHit(Enemy)
         wait(AuraSettings.PunchSpeed)
@@ -267,6 +269,12 @@ local function GetQuestMobs(quest)
         EnemyType = {"Arlo", "John", "Seraphina"}
     elseif quest == "Trouble in the backrooms" then 
         EnemyType = {"Seer", "John", "Seraphina"}
+    elseif quest == "Something is in the sewers" then 
+        EnemyType = {"Cultist"}
+    elseif quest == "Cooking some crossovers" then 
+        EnemyType = {"Thunderclap"}
+    elseif quest == "Troubles from another timeline" then 
+        EnemyType = {"Roku"}
     end
     return(EnemyType)
 end
@@ -543,7 +551,10 @@ local QuestSelect = PageFarm.AddDropdown("Quest Select", {
     "Gaming Disorder",
     "Kingdom",
     "Rigged Game",
-    "Trouble in the backrooms"
+    "Trouble in the backrooms",
+    "Something is in the sewers",
+    "Cooking some crossovers",
+    "Troubles from another timeline"
     }, function(value)
         FarmSettings.SelectedQuest = value
         Save("FarmSettings", FarmSettings)
@@ -555,11 +566,25 @@ local PageKillAura = MainUI.AddPage("Kill Aura", false)
 
 local KillAuraToggle = PageKillAura.AddToggle("Kill Aura", false, function(value)
     Toggles.KillAura = value
+    for _,v in pairs(getgc()) do
+        if type(v) == 'function' and check(v) then
+            if(debug.getinfo(v).numparams) == 4 then
+                getgenv().Attack = v
+            end
+        end
+    end
 
 end)
 
 local MobAuraToggle = PageKillAura.AddToggle("Only Mob Kill Aura (Overrides Kill Aura)", false, function(value)
     Toggles.MobAura = value
+    for _,v in pairs(getgc()) do
+        if type(v) == 'function' and check(v) then
+            if(debug.getinfo(v).numparams) == 4 then
+                getgenv().Attack = v
+            end
+        end
+    end
 end)
 
 local SliderKillDistance = PageKillAura.AddSlider("Kill Aura Distance", {Min = 0, Max = 16, Def = AuraSettings.KillDistance}, function(value)
