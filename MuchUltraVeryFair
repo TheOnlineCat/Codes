@@ -27,7 +27,8 @@ getgenv().AuraSettings = {
 
 getgenv().RollSettings = {
     Amount = 25,
-    Threshold = 15
+    Threshold = 15,
+    Hide = false
 }
 
 
@@ -183,8 +184,12 @@ local function getNearestObstacles(barrierOnly)
     return Target
 end
 
+
+
+
+
 local function check(e)
-    local script = Player.PlayerGui.MainClient.LocalScript
+    local script = game:GetService("Players").LocalPlayer.PlayerGui.MainClient.LocalScript
     if getfenv(e) and getfenv(e).script and getfenv(e).script.Name and getfenv(e).script == script then
         return true
     else
@@ -193,11 +198,38 @@ local function check(e)
 end
 
 getgenv().Attack = nil
+local CurrentEnemy = nil
+local PunchCounter = 0
+
+local function AttackFuncGet()
+    for _,v in pairs(getgc()) do
+        if type(v) == 'function' and check(v) then
+            if(debug.getinfo(v).numparams) == 4 then
+                getgenv().Attack = v
+            end
+        end
+    end
+end
+
 
 local function Punch(Enemy)
+    if CurrentEnemy ~= nil and CurrentEnemy == Enemy then
+        PunchCounter += 1
+    else
+        CurrentEnemy = Enemy
+        PunchCounter = 0
+    end
     --some script i edited for attack (from Anyx)
-    if Attack then
-        getgenv().Attack(Vector3.new(10,10,10),CFrame.new(0,0,-4),6,nil)
+    if PunchCounter >= 5 then
+        wait(1)
+        PunchCounter = 0
+    end
+
+
+    if getgenv().Attack then
+        getgenv().Attack(Vector3.new(AuraSettings.KillDistance, AuraSettings.KillDistance, AuraSettings.KillDistance),CFrame.new(0,0,0),6,nil)
+    else
+        AttackFuncGet()
     end
 end
 
@@ -233,13 +265,9 @@ end
 
 
 local function Hit(Enemy)
-    if AuraSettings.Mode == "Punch (Lowest 150ms)" then
+    if AuraSettings.Mode == "Punch" then
         Punch(Enemy)
-        if (AuraSettings.PunchSpeed>= 0.15) then
-            wait(AuraSettings.PunchSpeed)
-        else
-            wait(0.15)
-        end
+        wait(AuraSettings.PunchSpeed)
     elseif AuraSettings.Mode == "Dark Blade (Arbiter Only)" then
         ArbiterHit(Enemy)
         wait(AuraSettings.PunchSpeed)
@@ -457,60 +485,97 @@ end
 local function AutoRoll()
     spawn(function()
         while wait() and Toggles.AutoRoll do
+            RerollPath.Enabled = not RollSettings.Hide
             spawn(function()
-                Rep.Reroll:InvokeServer()
-            end)
-            local Rolled
+                local Rolled
 
-            while RerollPath.Rerolling.Ability.TextLabel.Text and not(RerollPath.Question.Visible) do
-                    Rolled = RerollPath.Rerolling.Ability.TextLabel.Text
+                repeat
                     wait()
-            end
+                until RerollPath.Question.Visible == true
+                Rolled = RerollPath.Rerolling.Ability.TextLabel.Text
 
-            local Level = Rolled:split("(")[2]:split(")")[1]
-            local Ability = string.gsub(Rolled:split("(")[1], "%s+$", "")
+                local Level = Rolled:split("(")[2]:split(")")[1]
+                local Ability = string.gsub(Rolled:split("(")[1], "%s+$", "")
 
-            print("Rolled ".. Ability.. " " .. Level .. " | out of minimum | ".. AbilityDict[Ability])
-            Level = ConvertFloat(Level)
-        
-            if (Level >= RollSettings.Threshold) or (Level>= AbilityDict[Ability] and AbilityDict[Ability] ~= 0) then
-                print("Found Ability")
-                if Toggles.Store then
-                    no()
-                    wait(0.4)
-                    yes()
-                    wait(0.4)
-                    for i, v in AbilityStore do
-                        if ReplaceAbility == v.TextLabel.Text then
-                            spawn(function()
-                                for i2,v2 in pairs(getconnections(v.MouseButton1Click)) do
-                                        v2.Function()
-                                end
-                            end)
+                print("Rolled ".. Ability.. " " .. Level .. " | out of minimum | ".. AbilityDict[Ability])
+                Level = ConvertFloat(Level)
+            
+                if (Level >= RollSettings.Threshold) or (Level>= AbilityDict[Ability] and AbilityDict[Ability] ~= 0) then
+                    print("Found Ability")
+                    RerollPath.Enabled = true
 
-                            wait(0.5)
+                    if Toggles.Store then
+
+                        repeat
+                            wait()
+                        until RerollPath.Question.Visible and RerollPath.Question.Title.Text == "Switch Ability"
+
+                        repeat
+                            no()
+                            wait()
+                        until RerollPath.Question.Visible and RerollPath.Question.Title.Text == "Store Ability"
+
+                        while RerollPath.Question.Visible and RerollPath.Question.Title.Text == "Store Ability" do
                             yes()
-                            break
+                            wait()
                         end
+
+                        repeat
+                            wait()
+                        until RerollPath.AbilityStorage.Visible == true
+
+                        for i, v in AbilityStore do
+                            if ReplaceAbility == v.TextLabel.Text then
+                                spawn(function()
+                                    for i2,v2 in pairs(getconnections(v.MouseButton1Click)) do
+                                            v2.Function()
+                                    end
+                                end)
+
+                                repeat
+                                    wait()
+                                until RerollPath.Question.Visible and RerollPath.Question.Title.Text == "Replace" == true
+                                yes()
+                                Toggles.AutoRoll = false
+                            end
+                        end
+                        
                     end
-                    
+                    Toggles.AutoRoll = false
+                else
+                    while RerollPath.Question.Visible == true do
+                        no()
+                        wait(0.2)
+                    end
                 end
-                break
-            else
-                while RerollPath.Question.Visible == true do
-                    no()
-                    wait(0.2)
-                end
-            end
-            repeat 
+            end)
+
+            repeat
                 wait()
-            until RerollPath.Rerolling.Visible == false
+            until RerollPath.Question.Visible== false and RerollPath.Rerolling.Visible == false
+            
+            Rep.Reroll:InvokeServer()
+            wait(3)
         end
     end)
 end
 
+spawn(function()
+	while wait() do
+		game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(character)
+            local Players = Get.Players
+            local Player = Players.LocalPlayer
+            getgenv().Attack = nil
+		end)
+		game:GetService("Players").LocalPlayer.Character:WaitForChild("Humanoid").Died()
+	end
+end)
+
 
 Farm()
+
+
+
 
 
 
@@ -566,28 +631,13 @@ local PageKillAura = MainUI.AddPage("Kill Aura", false)
 
 local KillAuraToggle = PageKillAura.AddToggle("Kill Aura", false, function(value)
     Toggles.KillAura = value
-    for _,v in pairs(getgc()) do
-        if type(v) == 'function' and check(v) then
-            if(debug.getinfo(v).numparams) == 4 then
-                getgenv().Attack = v
-            end
-        end
-    end
-
 end)
 
 local MobAuraToggle = PageKillAura.AddToggle("Only Mob Kill Aura (Overrides Kill Aura)", false, function(value)
-    Toggles.MobAura = value
-    for _,v in pairs(getgc()) do
-        if type(v) == 'function' and check(v) then
-            if(debug.getinfo(v).numparams) == 4 then
-                getgenv().Attack = v
-            end
-        end
-    end
+    Toggles.MobAura = value    
 end)
 
-local SliderKillDistance = PageKillAura.AddSlider("Kill Aura Distance", {Min = 0, Max = 16, Def = AuraSettings.KillDistance}, function(value)
+local SliderKillDistance = PageKillAura.AddSlider("Kill Aura Distance", {Min = 0, Max = 30, Def = AuraSettings.KillDistance}, function(value)
     AuraSettings.KillDistance = value
     Save("AuraSettings", AuraSettings)
 end)
@@ -601,7 +651,7 @@ end)
 
 local AuraMode = PageKillAura.AddDropdown("Aura Hit Mode",
     {   
-    "Punch (Lowest 150ms)",
+    "Punch",
     "Dark Blade (Arbiter Only)",
     "Energy Blade"
     }, function(value)
@@ -619,13 +669,19 @@ end)
 
 local ToggleAutoRoll = PageRoll.AddToggle("Auto Roll Ability", false, function(value)
     Toggles.AutoRoll = value
+    RerollPath.Enabled = true
     if value then
         AutoRoll()
     end
 end)
 
+local ToggleAutoRoll = PageRoll.AddToggle("Hide GUI when Auto", false, function(value)
+    RollSettings.Hide = value
+    RerollPath.Enabled = true
+end)
 
-local RollThreshold = PageRoll.AddSlider("Roll Minimum Level (Global)", {Min = 0, Max = 40, Def = RollSettings.Threshold}, function(value)
+
+local RollThreshold = PageRoll.AddSlider("Roll Minimum Level (Global)", {Min = 0, Max = 30, Def = RollSettings.Threshold}, function(value)
     RollSettings.Threshold = value
     Save("RollSettings", RollSettings)
 end)
@@ -703,7 +759,7 @@ end)
 local AbilitySliders = {}
 
 for i, v in pairs(AbilityList) do
-    table.insert(AbilitySliders, (PageAutoRoll.AddSlider(v, {Min = 0, Max = 40, Def = AbilityDict[v]}, function(value)
+    table.insert(AbilitySliders, (PageAutoRoll.AddSlider(v, {Min = 0, Max = 30, Def = AbilityDict[v]}, function(value)
         AbilityDict[v] = value
         Save("AbilityFilter", AbilityDict)
     end)))
