@@ -625,7 +625,7 @@ local ToggleAutoRoll = PageRoll.AddToggle("Auto Roll Ability", false, function(v
 end)
 
 
-local RollThreshold = PageRoll.AddSlider("Roll Minimum Level (Global)", {Min = 0, Max = 20, Def = RollSettings.Threshold}, function(value)
+local RollThreshold = PageRoll.AddSlider("Roll Minimum Level (Global)", {Min = 0, Max = 40, Def = RollSettings.Threshold}, function(value)
     RollSettings.Threshold = value
     Save("RollSettings", RollSettings)
 end)
@@ -703,7 +703,7 @@ end)
 local AbilitySliders = {}
 
 for i, v in pairs(AbilityList) do
-    table.insert(AbilitySliders, (PageAutoRoll.AddSlider(v, {Min = 0, Max = 20, Def = AbilityDict[v]}, function(value)
+    table.insert(AbilitySliders, (PageAutoRoll.AddSlider(v, {Min = 0, Max = 40, Def = AbilityDict[v]}, function(value)
         AbilityDict[v] = value
         Save("AbilityFilter", AbilityDict)
     end)))
