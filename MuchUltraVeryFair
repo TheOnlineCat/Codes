@@ -469,8 +469,9 @@ end
 
 
 
-local abilityResults = {}
+
 local function getRolledAbilities()
+    local abilityResults = {}
     for _i, ability in game:GetService("Players").LocalPlayer.PlayerGui.Reroll.Rerolls.ScrollingFrame:GetChildren() do
         if (ability.Name ~= "RollTemplate")  then
             continue
@@ -483,6 +484,7 @@ local function getRolledAbilities()
             end
         end
     end
+    return abilityResults
 end
 
 
@@ -492,7 +494,7 @@ local function AutoRoll()
             RerollPath.Enabled = not RollSettings.Hide
             local Rolled
 
-            local rolledAbilities = {}
+            local rolledAbilities
             repeat
                 rolledAbilities = getRolledAbilities()
                 wait(1)
