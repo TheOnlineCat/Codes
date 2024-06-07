@@ -361,7 +361,7 @@ local function Farm()
                             Hit(Obstacle)
                         else
 			    if CurrentDistance >= 200 then
-			        Player.Character.HumanoidRootPart.CFrame = Enemy:FindFirstChildWhichIsA("HumanoidRootPart").CFrame
+			        Player.Character.HumanoidRootPart.Position = Enemy:FindFirstChildWhichIsA("HumanoidRootPart").Position
 			    else
                         	Player.Character.Humanoid:MoveTo(GetOffsetVector(Enemy))
 			    end
