@@ -360,10 +360,10 @@ local function Farm()
                         elseif FarmSettings.KillPlayers and Obstacle and (Player.Character.HumanoidRootPart.Position - Obstacle:GetModelCFrame().Position).Magnitude < AuraSettings.KillDistance then
                             Hit(Obstacle)
                         else
-			    if CurrentDistance >= 20 then
-			        Player.Character.HumanoidRootPart.Position = Enemy:FindFirstChildWhichIsA("HumanoidRootPart").Position
+			    if CurrentDistance >= 300 then
+			        Player.Character:MoveTo(Enemy:GetModelCFrame().Position)
 			    else
-                        	Player.Character.Humanoid:MoveTo(GetOffsetVector(Enemy))
+                               Player.Character.Humanoid:MoveTo(GetOffsetVector(Enemy))
 			    end
                         end
                         if Obstacle.Name == "Barrier" and CurrentDistance < FarmSettings.AuraDistance and EnemyBarrier then
