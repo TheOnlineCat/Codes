@@ -239,6 +239,8 @@ local function ArbiterHit(Enemy)
         [2] = Enemy:FindFirstChildWhichIsA("Humanoid")
     }
     Rep.Damage:FireServer(unpack(args))
+    Rep.Damage:FireServer(unpack(args))
+    Rep.Damage:FireServer(unpack(args))
 end
 
 -- local function ArbiterUlt(Enemy)
@@ -646,7 +648,7 @@ local SliderKillDistance = PageKillAura.AddSlider("Kill Aura Distance", {Min = 0
     Save("AuraSettings", AuraSettings)
 end)
 
-local SliderPunchSpeed = PageKillAura.AddSlider("Hit Speed (ms)", {Min = 0.1, Max = 3000, Def = AuraSettings.PunchSpeed * 1000}, function(value)
+local SliderPunchSpeed = PageKillAura.AddSlider("Hit Speed (ms)", {Min = 1, Max = 3000, Def = AuraSettings.PunchSpeed * 1000}, function(value)
     AuraSettings.PunchSpeed = value/1000
     Save("AuraSettings", AuraSettings)
 end)
