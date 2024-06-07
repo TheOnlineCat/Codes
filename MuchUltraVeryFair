@@ -221,7 +221,7 @@ local function AttackFuncGet()
     for _,v in pairs(getgc()) do
         if type(v) == 'function' and check(v) then
             if(debug.getinfo(v).numparams) == 4 then
-                getgenv().Attack = v
+                Attack = v
             end
         end
     end
@@ -242,8 +242,8 @@ local function Punch(Enemy)
     end
 
 
-    if getgenv().Attack then
-        getgenv().Attack(Vector3.new(AuraSettings.KillDistance, AuraSettings.KillDistance, AuraSettings.KillDistance),CFrame.new(0,0,0),6,nil)
+    if Attack then
+        Attack(Vector3.new(AuraSettings.KillDistance, AuraSettings.KillDistance, AuraSettings.KillDistance),CFrame.new(0,0,0),6,nil)
     else
         AttackFuncGet()
     end
@@ -496,7 +496,9 @@ local function AutoRoll()
             local rolledAbilities
             repeat
                 rolledAbilities = getRolledAbilities()
-                print(#rolledAbilities, rolledAbilities)
+                if (#rolledAbilities = 0) then
+                    Rep.Reroll:InvokeServer(nil, nil, true)
+                end
                 wait(1)
             until #rolledAbilities >= 10
 
@@ -528,7 +530,7 @@ spawn(function()
 		game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(character)
             local Players = Get.Players
             local Player = Players.LocalPlayer
-            getgenv().Attack = nil
+            Attack = nil
 		end)
 		game:GetService("Players").LocalPlayer.Character:WaitForChild("Humanoid").Died()
 	end
