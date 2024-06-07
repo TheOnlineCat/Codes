@@ -695,12 +695,14 @@ end)
 
 local AbilitySliders = {}
 
-for abil, lvl in pairs(AbilityDict) do
-    table.insert(AbilitySliders, (PageAutoRoll.AddSlider(abil, {Min = 0, Max = 30, Def = AbilityDict[lvl]}, function(value)
-        AbilityDict[abil] = value
+for i, v in pairs(AbilityList) do
+    table.insert(AbilitySliders, (PageAutoRoll.AddSlider(v, {Min = 0, Max = 30, Def = AbilityDict[v]}, function(value)
+        AbilityDict[v] = value
         Save("AbilityFilter", AbilityDict)
     end)))
 end
+
+
 
 local PageMisc = MainUI.AddPage("Misc", false)
 
