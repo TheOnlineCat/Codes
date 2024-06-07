@@ -642,7 +642,7 @@ local SliderKillDistance = PageKillAura.AddSlider("Kill Aura Distance", {Min = 0
     Save("AuraSettings", AuraSettings)
 end)
 
-local SliderPunchSpeed = PageKillAura.AddSlider("Hit Speed (ms)", {Min = 15, Max = 3000, Def = AuraSettings.PunchSpeed * 1000}, function(value)
+local SliderPunchSpeed = PageKillAura.AddSlider("Hit Speed (ms)", {Min = 1, Max = 3000, Def = AuraSettings.PunchSpeed * 1000}, function(value)
     AuraSettings.PunchSpeed = value/1000
     Save("AuraSettings", AuraSettings)
 end)
