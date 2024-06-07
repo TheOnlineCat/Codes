@@ -364,6 +364,7 @@ local function Farm()
                                 Player.Character.Humanoid:MoveTo(GetOffsetVector(Enemy))
                             else
                                 Player.Character:SetPrimaryPartCFrame(Enemy.CFrame)
+                            end
                         end
                         if Obstacle.Name == "Barrier" and CurrentDistance < FarmSettings.AuraDistance and EnemyBarrier then
                             Hit(Obstacle)
