@@ -69,9 +69,11 @@ getgenv().ReplaceAbility = nil
 local RerollPath = Player.PlayerGui.Reroll
 local AbilityList = {}
 
+
 AbilityDict = Load("AbilityFilter")
 for i, v in pairs(RerollPath.Prompt.Prompt.ScrollingFrame:GetChildren()) do
     if v:IsA("TextButton") then
+        table.insert(AbilityList, v.Name)
         if not (AbilityDict[v.Name]) then
             AbilityDict[v.Name] = 0
         end
