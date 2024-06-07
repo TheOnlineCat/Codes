@@ -492,7 +492,7 @@ local function AutoRoll()
             RerollPath.Enabled = not RollSettings.Hide
             local Rolled
 
-            local rolledAbilities
+            local rolledAbilities = {}
             repeat
                 rolledAbilities = getRolledAbilities()
                 wait(1)
