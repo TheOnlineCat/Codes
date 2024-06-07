@@ -496,7 +496,7 @@ local function AutoRoll()
             local rolledAbilities
             repeat
                 rolledAbilities = getRolledAbilities()
-                if (#rolledAbilities = 0) then
+                if (#rolledAbilities == 0) then
                     Rep.Reroll:InvokeServer(nil, nil, true)
                 end
                 wait(1)
