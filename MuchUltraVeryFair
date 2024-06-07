@@ -63,6 +63,21 @@ local function Load(File)
     end
 end
 
+
+getgenv().AbilityDict = {}
+getgenv().ReplaceAbility = nil
+local RerollPath = Player.PlayerGui.Reroll
+local AbilityList = {}
+
+AbilityDict = Load("AbilityFilter")
+for i, v in pairs(RerollPath.Prompt.Prompt.ScrollingFrame:GetChildren()) do
+    if v:IsA("TextButton") then
+        if not (AbilityDict[v.Name]) then
+            AbilityDict[v.Name] = 0
+        end
+    end
+end
+
 AuraSettings = Load("AuraSettings")
 RollSettings = Load("RollSettings")
 FarmSettings = Load("FarmSettings")
@@ -451,39 +466,21 @@ local function BossFarm()
 end
 
 
-getgenv().AbilityDict = {}
-getgenv().ReplaceAbility = nil
-local RerollPath = Player.PlayerGui.Reroll
-local AbilityList = {}
-local AbilityStore = {}
-local StoredNames = {}
 
 
-AbilityDict = Load("AbilityFilter")
-for i, v in pairs(RerollPath.Prompt.Prompt.ScrollingFrame:GetChildren()) do
-    if v:IsA("TextButton") then
-        table.insert(AbilityList, v.Name)
-        if not (AbilityDict[v.Name]) then
-            AbilityDict[v.Name] = 0
+local abilityResults = {}
+local function getRolledAbilities()
+    for _i, ability in game:GetService("Players").LocalPlayer.PlayerGui.Reroll.Rerolls.ScrollingFrame:GetChildren() do
+        if (ability.Name ~= "RollTemplate")  then
+            continue
         end
-    end
-end
-
-local function ConvertFloat(stri)
-    local number = stri:split(".")
-    local decimal = tonumber(number[2])/10
-    local float = number[1] + decimal
-    return (float)
-end
-
-local function no()
-    for i,v in pairs(getconnections(RerollPath.Question.no.MouseButton1Click)) do
-        v.Function()
-    end
-end
-local function yes()
-    for i,v in pairs(getconnections(RerollPath.Question.yes.MouseButton1Click)) do
-        v.Function()
+        for i, v in next, getconnections(ability.RollTemplate.Accept.MouseButton1Click) do
+            for i2, v2 in next, getupvalues(v.Function) do
+                if(type(v2) == "table" and v2.Ability) then
+                    abilityResults[v2.Ability] = v2.Potential
+                end
+            end
+        end
     end
 end
 
@@ -492,76 +489,33 @@ local function AutoRoll()
     spawn(function()
         while wait() and Toggles.AutoRoll do
             RerollPath.Enabled = not RollSettings.Hide
-            spawn(function()
-                local Rolled
+            local Rolled
 
-                repeat
-                    wait()
-                until RerollPath.Question.Visible == true
-                Rolled = RerollPath.Rerolling.Ability.TextLabel.Text
+            local rolledAbilities
+            repeat
+                rolledAbilities = getRolledAbilities()
+                wait(1)
+            until #rolledAbilities >= 10
 
-                local Level = Rolled:split("(")[2]:split(")")[1]
-                local Ability = string.gsub(Rolled:split("(")[1], "%s+$", "")
+            for ability, potential in rolledAbilities do 
+                print(ability, potential)
 
-                print("Rolled ".. Ability.. " " .. Level .. " | out of minimum | ".. AbilityDict[Ability])
-                Level = ConvertFloat(Level)
-            
-                if (Level >= RollSettings.Threshold) or (Level>= AbilityDict[Ability] and AbilityDict[Ability] ~= 0) then
-                    print("Found Ability")
+                if (potential >= RollSettings.Threshold) or (potential>= AbilityDict[ability] and AbilityDict[ability] ~= 0) then
                     RerollPath.Enabled = true
-
                     if Toggles.Store then
-
-                        repeat
-                            wait()
-                        until RerollPath.Question.Visible and RerollPath.Question.Title.Text == "Switch Ability"
-
-                        repeat
-                            no()
-                            wait()
-                        until RerollPath.Question.Visible and RerollPath.Question.Title.Text == "Store Ability"
-
-                        while RerollPath.Question.Visible and RerollPath.Question.Title.Text == "Store Ability" do
-                            yes()
-                            wait()
-                        end
-
-                        repeat
-                            wait()
-                        until RerollPath.AbilityStorage.Visible == true
-
-                        for i, v in AbilityStore do
-                            if ReplaceAbility == v.TextLabel.Text then
-                                spawn(function()
-                                    for i2,v2 in pairs(getconnections(v.MouseButton1Click)) do
-                                            v2.Function()
-                                    end
-                                end)
-
-                                repeat
-                                    wait()
-                                until RerollPath.Question.Visible and RerollPath.Question.Title.Text == "Replace" == true
-                                yes()
-                                Toggles.AutoRoll = false
-                            end
-                        end
-                        
+                        return
                     end
                     Toggles.AutoRoll = false
-                else
-                    while RerollPath.Question.Visible == true do
-                        no()
-                        wait(0.2)
-                    end
                 end
-            end)
 
-            repeat
-                wait()
-            until RerollPath.Question.Visible== false and RerollPath.Rerolling.Visible == false
-            
-            Rep.Reroll:InvokeServer()
-            wait(3)
+            end
+
+            for i,v in pairs(getconnections(RerollPath.Rerolls.x.MouseButton1Click)) do
+                v.Function()
+            end
+
+           
+            Rep.Reroll:InvokeServer(nil, nil, true)
         end
     end)
 end
@@ -673,6 +627,10 @@ local RollAbility = PageRoll.AddButton("Roll Ability", function()
     Rep.Reroll:InvokeServer()
 end)
 
+local Roll10Ability = PageRoll.AddButton("Roll 10 Abilities", function()
+    Rep.Reroll:InvokeServer(nil, nil, true)
+end)
+
 local ToggleAutoRoll = PageRoll.AddToggle("Auto Roll Ability", false, function(value)
     Toggles.AutoRoll = value
     RerollPath.Enabled = true
@@ -692,35 +650,8 @@ local RollThreshold = PageRoll.AddSlider("Roll Minimum Level (Global)", {Min = 0
     Save("RollSettings", RollSettings)
 end)
 
- 
-local ReplaceSelect = PageRoll.AddDropdown("Replace Ability",
-    {
-        "LOAD"
-    }, function(value)
-        ReplaceAbility = value
-        
 
-end)
-
-
-spawn(function()
-    while true do
-        StoredNames = {}
-        for i, v in pairs(RerollPath.AbilityStorage.ScrollingFrame:GetChildren()) do
-            if v:IsA("TextButton") and v then
-                AbilityStore[i] = v
-                table.insert(StoredNames, v.TextLabel.Text)
-            end
-        end
-        ReplaceSelect.SetArray(StoredNames)
-        wait(0.3)
-    end
-end)
-
-
-
-
-local AutoStore = PageRoll.AddToggle("Auto Replace Ability", false, function(value)
+local AutoStore = PageRoll.AddToggle("Auto Store Ability", false, function(value)
     Toggles.Store = value
 end)
 
@@ -764,14 +695,12 @@ end)
 
 local AbilitySliders = {}
 
-for i, v in pairs(AbilityList) do
-    table.insert(AbilitySliders, (PageAutoRoll.AddSlider(v, {Min = 0, Max = 30, Def = AbilityDict[v]}, function(value)
-        AbilityDict[v] = value
+for abil, lvl in pairs(AbilityDict) do
+    table.insert(AbilitySliders, (PageAutoRoll.AddSlider(abil, {Min = 0, Max = 30, Def = AbilityDict[lvl]}, function(value)
+        AbilityDict[abil] = value
         Save("AbilityFilter", AbilityDict)
     end)))
 end
-
-
 
 local PageMisc = MainUI.AddPage("Misc", false)
 
