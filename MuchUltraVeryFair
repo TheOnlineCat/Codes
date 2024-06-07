@@ -492,11 +492,11 @@ local function AutoRoll()
     spawn(function()
         while wait() and Toggles.AutoRoll do
             RerollPath.Enabled = not RollSettings.Hide
-            local Rolled
 
             local rolledAbilities
             repeat
                 rolledAbilities = getRolledAbilities()
+                print(#rolledAbilities, rolledAbilities)
                 wait(1)
             until #rolledAbilities >= 10
 
