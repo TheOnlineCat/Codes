@@ -65,7 +65,6 @@ end
 
 
 getgenv().AbilityDict = {}
-getgenv().ReplaceAbility = nil
 local RerollPath = Player.PlayerGui.Reroll
 local AbilityList = {}
 
