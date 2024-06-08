@@ -483,12 +483,12 @@ local function getRolledAbilities()
     return abilityResults
 end
 
-local buttonPosition = RerollPath.Rerolls.X.AbsolutePosition
-local buttonSize = RerollPath.Rerolls.X.AbsoluteSize
-
-local buttonCenter = buttonPosition + (buttonSize / 2)
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local x = RerollPath.Rerolls.X.AbsolutePosition.X + RerollPath.Rerolls.X.AbsoluteSize.X / 2
+local y = RerollPath.Rerolls.X.AbsolutePosition.Y + RerollPath.Rerolls.X.AbsoluteSize.Y
 
 local function autoRoll()
+    Rep.Reroll:InvokeServer(nil, nil, true)
     spawn(function()
         while wait(0.1) and Toggles.AutoRoll do
             RerollPath.Enabled = not RollSettings.Hide
@@ -508,12 +508,17 @@ local function autoRoll()
     
                 end
     
-                VirtualUser:ClickButton2(buttonCenter)
+                print("rolling again")
+                
+
+                VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
+                VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
+                --
+                
+                
                 -- for i,v in pairs(getconnections(RerollPath.Rerolls.X.MouseButton1Click)) do
                 --     v.Function()
                 -- end
-                Rep.Reroll:InvokeServer(nil, nil, true)
-            elseif (#rolledAbilities == 0) then
                 Rep.Reroll:InvokeServer(nil, nil, true)
             end
         end
