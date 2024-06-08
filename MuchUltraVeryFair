@@ -505,8 +505,9 @@ local function autoRoll()
                 print(count)
             end
         end)
-        
+
         while wait(0.1) and Toggles.AutoRoll do
+            print(count)
             if (count > 9) then
                 print("roll finished")
 
