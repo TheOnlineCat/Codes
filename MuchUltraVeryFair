@@ -6,7 +6,6 @@ getgenv().Toggles = {
     KillAura = false,
     MobAura = false,
     AutoRoll = false,
-    Store = false,
     FarmBoss = false,
     BreakBarrier = false
 }
@@ -28,6 +27,7 @@ getgenv().AuraSettings = {
 getgenv().RollSettings = {
     Amount = 25,
     Threshold = 15,
+    Store = false,
     Hide = false
 }
 
@@ -368,7 +368,7 @@ local function farm()
                             hit(obstacle)
                         else
                             if currentDistance >= 300 then
-                                Player.Character:MoveTo(enemy:GetModelCFrame().Position)
+                                Player.Character:MoveTo(getOffsetVector(enemy))
                             else
                                 Player.Character.Humanoid:MoveTo(getOffsetVector(enemy))
                             end
@@ -512,7 +512,7 @@ game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(funct
                 for _i, ability in rolledAbilities do     
                     if (ability.potential >= RollSettings.Threshold) or (ability.potential >= AbilityDict[ability.name] and AbilityDict[ability.name] ~= 0) then
                         found = true
-                        if Toggles.Store then
+                        if RollSettings.Store then
                             ability.accept()
                         else
                             Toggles.AutoRoll = false
@@ -686,8 +686,8 @@ local RollThreshold = PageRoll.AddSlider("Roll Minimum Level (Global)", {Min = 0
 end)
 
 
-local AutoStore = PageRoll.AddToggle("Auto Store Ability", false, function(value)
-    Toggles.Store = value
+local AutoStore = PageRoll.AddToggle("Auto Store Ability", RollSettings.Store, function(value)
+    RollSettings.Store = value
 end)
 
 
