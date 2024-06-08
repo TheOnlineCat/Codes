@@ -472,9 +472,10 @@ local function getRolledAbilities()
             for i2, v2 in next, getupvalues(v.Function) do
                 if(type(v2) == "table" and v2.Ability) then
                     local ability = {potential = nil, accept = nil}
+                    ability.ability = v2.Ability
                     ability.potential = v2.Potential
                     ability.accept = v.Function
-                    abilityResults[v2.Ability] = ability
+                    table.insert(abilityResults, ability)
                 end
             end
         end
@@ -496,9 +497,9 @@ local function autoRoll()
             print(rolledAbilities)
             if (#rolledAbilities >= 10) then
                 for ability in rolledAbilities do 
-                    print(ability, ability.potential)
+                    print(ability.ability, ability.potential)
     
-                    if (ability.potential >= RollSettings.Threshold) or (ability.potential>= AbilityDict[ability] and AbilityDict[ability] ~= 0) then
+                    if (ability.potential >= RollSettings.Threshold) or (ability.potential >= AbilityDict[ability.ability] and AbilityDict[ability.ability] ~= 0) then
                         RerollPath.Enabled = true
                         Toggles.AutoRoll = false
                         if Toggles.Store then
