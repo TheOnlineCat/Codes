@@ -688,6 +688,7 @@ end)
 
 local AutoStore = PageRoll.AddToggle("Auto Store Ability", RollSettings.Store, function(value)
     RollSettings.Store = value
+    Save("RollSettings", RollSettings)
 end)
 
 
