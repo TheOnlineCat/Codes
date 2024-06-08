@@ -471,8 +471,8 @@ local function getRolledAbilities()
         for i, v in next, getconnections(ability.RollTemplate.Accept.MouseButton1Click) do
             for i2, v2 in next, getupvalues(v.Function) do
                 if(type(v2) == "table" and v2.Ability) then
-                    local ability = {potential = nil, accept = nil}
-                    ability.ability = v2.Ability
+                    local ability = {name = nil, potential = nil, accept = nil}
+                    ability.name = v2.Ability
                     ability.potential = v2.Potential
                     ability.accept = v.Function
                     table.insert(abilityResults, ability)
@@ -494,12 +494,11 @@ local function autoRoll()
             RerollPath.Enabled = not RollSettings.Hide
 
             local rolledAbilities = getRolledAbilities()
-            print(rolledAbilities)
             if (#rolledAbilities >= 10) then
-                for ability in rolledAbilities do 
-                    print(ability.ability, ability.potential)
+                for _i, ability in rolledAbilities do 
+                    print(ability.name, ability.potential)
     
-                    if (ability.potential >= RollSettings.Threshold) or (ability.potential >= AbilityDict[ability.ability] and AbilityDict[ability.ability] ~= 0) then
+                    if (ability.potential >= RollSettings.Threshold) or (ability.potential >= AbilityDict[ability.name] and AbilityDict[ability.name] ~= 0) then
                         RerollPath.Enabled = true
                         Toggles.AutoRoll = false
                         if Toggles.Store then
