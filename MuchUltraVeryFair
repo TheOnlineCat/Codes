@@ -14,7 +14,8 @@ getgenv().FarmSettings = {
     AuraDistance = 6,
     FarmDistance = 3,
     KillPlayers = true,
-    SelectedQuest = nil
+    SelectedQuest = nil,
+    GlobalBossKill = false
 }
 
 getgenv().AuraSettings = {
@@ -177,7 +178,7 @@ local function getNearestMobs(Type)
     return Target
 end
 
-local function getNearestObstacles(barrierOnly)
+local function getNearestObstacles(object, barrierOnly)
     local LowestDistance = math.huge
     local Target
     for i, v in ipairs(Workspace:GetChildren()) do
@@ -187,7 +188,7 @@ local function getNearestObstacles(barrierOnly)
                 continue
             end
             if Enemy and Enemy.Health ~= 0 then
-                local CurrentDistance = getDistanceTo(v)
+                local CurrentDistance = (object:GetModelCFrame().Position - v:GetModelCFrame().Position).Magnitude
                 if CurrentDistance < LowestDistance then
                     LowestDistance = CurrentDistance
                     Target = v
@@ -354,7 +355,7 @@ local function farm()
                         local obstacle
                         local enemyBarrier = false
 
-                        obstacle = getNearestObstacles(false)
+                        obstacle = getNearestObstacles(Player, false)
                         if obstacle.Name ~= "Barrier" and not (getDistanceTo(obstacle) < AuraSettings.KillDistance) then
                             enemyBarrier = false
                         end
@@ -425,10 +426,13 @@ local function BossFarm()
                     BossFight = true
                     local Boss = LocateBoss()
                     wait(0.1)
-                    for i,v in pairs(getconnections(Player.PlayerGui.Reroll.bosstp.Yes.MouseButton1Click)) do
-                        v.Function()
-                    end
                     
+                    if(not FarmSettings.GlobalBossKill) then
+                        for i,v in pairs(getconnections(Player.PlayerGui.Reroll.bosstp.Yes.MouseButton1Click)) do
+                            v.Function()
+                        end
+                    end
+
                     pcall(function()
                         while Boss.Humanoid.Health > 0 and Toggles.FarmBoss and Boss do
                             Boss = LocateBoss()
@@ -436,15 +440,15 @@ local function BossFarm()
                                 activateAbility()
                             end
 
-                            if getDistanceTo(Boss)  < AuraSettings.KillDistance then
+                            if FarmSettings.GlobalBossKill or (getDistanceTo(Boss)  < AuraSettings.KillDistance) then
                                 hit(Boss)
                             else 
                                 Player.Character.Humanoid:MoveTo(getOffsetVector(Boss))
                                 wait(0.1)
                             end
                             if Toggles.BreakBarrier then
-                                local Barrier = getNearestObstacles(true)
-                                if getDistanceTo(Barrier) < AuraSettings.KillDistance  then
+                                local Barrier = getNearestObstacles(Boss, true)
+                                if FarmSettings.GlobalBossKill or ((Boss:GetModelCFrame().Position - Barrier:GetModelCFrame().Position).Magnitude < 15)  then
                                     hit(Barrier)
                                 end
                             end
@@ -754,6 +758,11 @@ local PageMisc = MainUI.AddPage("Misc", false)
 local AttackBarrier = PageMisc.AddToggle("Damage Arlo Boss Barrier", false, function(value)
     Toggles.BreakBarrier = value
 end)
+
+local GlobalBoss = PageMisc.AddToggle("Kill Boss Globally", FarmSettings.GlobalBossKill, function(value)
+    FarmSettings.GlobalBossKill = value
+end)
+
 
 local Reset = PageMisc.AddButton("Reset Character", function()
     Player.Character.Humanoid.Health = 0
