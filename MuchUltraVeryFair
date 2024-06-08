@@ -121,31 +121,29 @@ function HideName()
 end
 
 
-A = require(Workspace.EnemyStats) --Get enemy names and stats
 local MobList = {}
-for i, v in pairs(A) do
+for i, v in pairs(require(Workspace.EnemyStats)) do
     table.insert(MobList, i) --append name to list
 end
 
 
-RunService.Stepped:Connect(
-   function()
-       if Toggles.Farm then
-           for i, v in pairs(Player.Character:GetChildren()) do
-               if v:IsA("BasePart") then
-                   v.CanCollide = false
-               end
-           end
-       end
-   end
-)
-
-
-local function ActivateAbility()
+local function activateAbility()
     local args = {[1] = false} 
     Rep.ToggleAbility:InvokeServer(unpack(args))
 end
 
+local function check(e)
+    local script = game:GetService("Players").LocalPlayer.PlayerGui.MainClient.LocalScript
+    if getfenv(e) and getfenv(e).script and getfenv(e).script.Name and getfenv(e).script == script then
+        return true
+    else
+        return false
+    end
+end
+
+local function getDistanceTo(object) 
+    return (Player.Character.HumanoidRootPart.Position - object:GetModelCFrame().Position).Magnitude
+end
 
 local function getNearestMobs(Type)
     local LowestDistance = math.huge
@@ -168,7 +166,7 @@ local function getNearestMobs(Type)
             
             local Enemy = v:FindFirstChildWhichIsA("Humanoid")
             if Enemy and Enemy.Health ~= 0 then
-                local CurrentDistance = (Player.Character.HumanoidRootPart.Position - v:GetModelCFrame().Position).Magnitude
+                local CurrentDistance = getDistanceTo(v)
                 if CurrentDistance < LowestDistance then
                     LowestDistance = CurrentDistance
                     Target = v
@@ -189,7 +187,7 @@ local function getNearestObstacles(barrierOnly)
                 continue
             end
             if Enemy and Enemy.Health ~= 0 then
-                local CurrentDistance = (Player.Character.HumanoidRootPart.Position - v:GetModelCFrame().Position).Magnitude
+                local CurrentDistance = getDistanceTo(v)
                 if CurrentDistance < LowestDistance then
                     LowestDistance = CurrentDistance
                     Target = v
@@ -201,19 +199,7 @@ local function getNearestObstacles(barrierOnly)
 end
 
 
-
-
-
-local function check(e)
-    local script = game:GetService("Players").LocalPlayer.PlayerGui.MainClient.LocalScript
-    if getfenv(e) and getfenv(e).script and getfenv(e).script.Name and getfenv(e).script == script then
-        return true
-    else
-        return false
-    end
-end
-
-getgenv().Attack = nil
+local attack = nil
 local CurrentEnemy = nil
 local PunchCounter = 0
 
@@ -221,38 +207,38 @@ local function AttackFuncGet()
     for _,v in pairs(getgc()) do
         if type(v) == 'function' and check(v) then
             if(debug.getinfo(v).numparams) == 4 then
-                Attack = v
+                attack = v
             end
         end
     end
 end
 
 
-local function Punch(Enemy)
-    if CurrentEnemy ~= nil and CurrentEnemy == Enemy then
+local function Punch(enemy)
+    if CurrentEnemy ~= nil and CurrentEnemy == enemy then
         PunchCounter += 1
     else
-        CurrentEnemy = Enemy
+        CurrentEnemy = enemy
         PunchCounter = 0
     end
     --some script i edited for attack (from Anyx)
     if PunchCounter >= 5 then
-        wait(1)
+        -- wait(1)
         PunchCounter = 0
     end
 
 
-    if Attack then
-        Attack(Vector3.new(AuraSettings.KillDistance, AuraSettings.KillDistance, AuraSettings.KillDistance),CFrame.new(0,0,0),6,nil)
+    if attack then
+        attack(Vector3.new(AuraSettings.KillDistance, AuraSettings.KillDistance, AuraSettings.KillDistance),CFrame.new(0,0,0),6,nil)
     else
         AttackFuncGet()
     end
 end
 
-local function ArbiterHit(Enemy)
+local function ArbiterHit(enemy)
     local args = {
         [1] = "Dark Blade",
-        [2] = Enemy:FindFirstChildWhichIsA("Humanoid")
+        [2] = enemy:FindFirstChildWhichIsA("Humanoid")
     }
     Rep.Damage:FireServer(unpack(args))
     Rep.Damage:FireServer(unpack(args))
@@ -268,13 +254,13 @@ end
 --     Rep.Damage:FireServer(unpack(args))
 -- end
 
-local function EnergyBlade(Enemy)
+local function EnergyBlade(enemy)
     local args = {
         [1] = "DualSwordHeavy",
-        [2] = Enemy:FindFirstChildWhichIsA("Humanoid"),
+        [2] = enemy:FindFirstChildWhichIsA("Humanoid"),
         [3] = Player.Character.Cancellations.Value,
         [4] = {
-            [1] = Enemy:FindFirstChildWhichIsA("Humanoid")
+            [1] = enemy:FindFirstChildWhichIsA("Humanoid")
         }
     }
     Rep.Damage:FireServer(unpack(args))
@@ -282,64 +268,65 @@ end
 
 
 
-local function Hit(Enemy)
+local function hit(enemy)
     if AuraSettings.Mode == "Punch" then
-        Punch(Enemy)
+        Punch(enemy)
         wait(AuraSettings.PunchSpeed)
     elseif AuraSettings.Mode == "Dark Blade (Arbiter Only)" then
-        ArbiterHit(Enemy)
+        ArbiterHit(enemy)
         wait(AuraSettings.PunchSpeed)
     elseif AuraSettings.Mode == "Energy Blade" then
-        EnergyBlade(Enemy)
+        EnergyBlade(enemy)
         wait(AuraSettings.PunchSpeed)
     end
 end
 
 
-local function Quest(Quest)
+local function quest(quest)
     local args = {
-        [1] = Quest
+        [1] = quest
     } 
     Rep.TakeQuest:FireServer(unpack(args))
 end
 
 
-local function GetQuestMobs(quest)
+local function getQuestMobs(quest)
+    local enemyType
     if quest == "Real Amgogus" then 
-        EnemyType = {"Cripple"}
+        enemyType = {"Cripple"}
     elseif quest == "Gaming Disorder" then 
-        EnemyType = {"Crail"}
+        enemyType = {"Crail"}
     elseif quest == "Kingdom" then 
-        EnemyType = {"Blyke", "Isen", "Remi", "Zeke"}
+        enemyType = {"Blyke", "Isen", "Remi", "Zeke"}
     elseif quest == "Rigged Game" then 
-        EnemyType = {"Arlo", "John", "Seraphina"}
+        enemyType = {"Arlo", "John", "Seraphina"}
     elseif quest == "Trouble in the backrooms" then 
-        EnemyType = {"Seer", "John", "Seraphina"}
+        enemyType = {"Seer", "John", "Seraphina"}
     elseif quest == "Something is in the sewers" then 
-        EnemyType = {"Cultist"}
+        enemyType = {"Cultist"}
     elseif quest == "Cooking some crossovers" then 
-        EnemyType = {"Thunderclap"}
+        enemyType = {"Thunderclap"}
     elseif quest == "Troubles from another timeline" then 
-        EnemyType = {"Roku"}
+        enemyType = {"Roku"}
+    elseif quest == "Troubles from another timeline" then 
+        enemyType = {"Roku"}
     end
-    return(EnemyType)
+    return(enemyType)
 end
 
-
-
-local function GetOffsetVector(Enemy)
-    local Vector = Player.Character.HumanoidRootPart.Position - Enemy:GetModelCFrame().Position
-    local Distance = (Vector).Magnitude
+local function getOffsetVector(enemy)
+    local Vector = Player.Character.HumanoidRootPart.Position - enemy:GetModelCFrame().Position
+    local Distance = Vector.Magnitude
     local Normal = Vector3.new(Vector.x/Distance, Vector.y/Distance, Vector.z/Distance)
     local Offset = Normal * FarmSettings.FarmDistance
-    local NewPosition = Enemy:GetModelCFrame().Position + Offset
+    local NewPosition = enemy:GetModelCFrame().Position + Offset
     return NewPosition
 end
 
-getgenv().BossFight = false
-local EnemyBarrier = false
+local BossFight = false
 
-local function Farm()
+
+local function farm()
     spawn(function()
         while wait() do
             if not BossFight then
@@ -347,45 +334,47 @@ local function Farm()
                     
                     pcall(function()
                         if not Player.PlayerGui.MainClient.Quest.visible then
-                            Quest(FarmSettings.SelectedQuest)
+                            quest(FarmSettings.SelectedQuest)
                         else
-                            local QuestCount = Player.PlayerGui.MainClient.Quest.Folder.Objective.progress.text:split("/")
-                            if QuestCount[1] == QuestCount[2] then
-                                Quest("Completed")
+                            local questCount = Player.PlayerGui.MainClient.Quest.Folder.Objective.progress.text:split("/")
+                            if questCount[1] == questCount[2] then
+                                quest("Completed")
                             end
                         end
             
 
                         if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
-                            ActivateAbility()
+                            activateAbility()
                         end
 
-                        local EnemyType = GetQuestMobs(FarmSettings.SelectedQuest)
-                        local Enemy = getNearestMobs(EnemyType)
-                        local CurrentDistance = (Player.Character.HumanoidRootPart.Position - Enemy:GetModelCFrame().Position).Magnitude
+                        local enemyType = getQuestMobs(FarmSettings.SelectedQuest)
+                        local enemy = getNearestMobs(enemyType)
+                        local currentDistance = getDistanceTo(enemy)
 
-                        local Obstacle
-                        Obstacle = getNearestObstacles(false)
-                        if Obstacle.Name ~= "Barrier" and not ((Player.Character.HumanoidRootPart.Position - Obstacle:GetModelCFrame().Position).Magnitude < AuraSettings.KillDistance) then
-                            EnemyBarrier = false
+                        local obstacle
+                        local enemyBarrier = false
+
+                        obstacle = getNearestObstacles(false)
+                        if obstacle.Name ~= "Barrier" and not (getDistanceTo(obstacle) < AuraSettings.KillDistance) then
+                            enemyBarrier = false
                         end
-                        if CurrentDistance < FarmSettings.AuraDistance then
-                            local Hp1 = Enemy:FindFirstChildWhichIsA("Humanoid").Health
-                            Hit(Enemy)
-                            if (Hp1 - Enemy:FindFirstChildWhichIsA("Humanoid").Health) == 0 then
-                                EnemyBarrier = true
+                        if currentDistance < FarmSettings.AuraDistance then
+                            local enemyHp = enemy:FindFirstChildWhichIsA("Humanoid").Health
+                            hit(enemy)
+                            if (enemyHp - enemy:FindFirstChildWhichIsA("Humanoid").Health) == 0 then
+                                enemyBarrier = true
                             end
-                        elseif FarmSettings.KillPlayers and Obstacle and (Player.Character.HumanoidRootPart.Position - Obstacle:GetModelCFrame().Position).Magnitude < AuraSettings.KillDistance then
-                            Hit(Obstacle)
+                        elseif FarmSettings.KillPlayers and obstacle and getDistanceTo(obstacle) < AuraSettings.KillDistance then
+                            hit(obstacle)
                         else
-			    if CurrentDistance >= 300 then
-			        Player.Character:MoveTo(Enemy:GetModelCFrame().Position)
-			    else
-                               Player.Character.Humanoid:MoveTo(GetOffsetVector(Enemy))
-			    end
+                            if currentDistance >= 300 then
+                                Player.Character:MoveTo(enemy:GetModelCFrame().Position)
+                            else
+                                Player.Character.Humanoid:MoveTo(getOffsetVector(enemy))
+                            end
                         end
-                        if Obstacle.Name == "Barrier" and CurrentDistance < FarmSettings.AuraDistance and EnemyBarrier then
-                            Hit(Obstacle)
+                        if obstacle.Name == "Barrier" and currentDistance < FarmSettings.AuraDistance and enemyBarrier then
+                            hit(obstacle)
                         end
                     end
                     )
@@ -393,9 +382,9 @@ local function Farm()
                 elseif (Toggles.KillAura or Toggles.MobAura) and not Toggles.Farm then
 
                     pcall(function()
-                        local Enemy = getNearestMobs()
-                        if (Player.Character.HumanoidRootPart.Position - Enemy:GetModelCFrame().Position).Magnitude < AuraSettings.KillDistance then
-                            Hit(Enemy)
+                        local enemy = getNearestMobs()
+                        if getDistanceTo(enemy) < AuraSettings.KillDistance then
+                            hit(enemy)
                         end
                     end)
 
@@ -407,10 +396,9 @@ end
 
 
 
-B = Workspace:FindFirstChild("BossSpawns") --Get enemy names and stats
 local BossList = {}
-local BossPosition = B:GetChildren()[1].CFrame.Position
-for i, v in pairs(B:GetChildren()) do
+local BossPosition = Workspace:FindFirstChild("BossSpawns")[1].CFrame.Position
+for i, v in pairs(Workspace:FindFirstChild("BossSpawns")) do
     table.insert(BossList, v.Name) --append name to list
 end
 
@@ -441,19 +429,19 @@ local function BossFarm()
                         while Boss.Humanoid.Health > 0 and Toggles.FarmBoss and Boss do
                             Boss = LocateBoss()
                             if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
-                                ActivateAbility()
+                                activateAbility()
                             end
 
-                            if (Player.Character.HumanoidRootPart.Position - Boss:GetModelCFrame().Position).Magnitude  < AuraSettings.KillDistance then
-                                Hit(Boss)
+                            if getDistanceTo(Boss)  < AuraSettings.KillDistance then
+                                hit(Boss)
                             else 
-                                Player.Character.Humanoid:MoveTo(GetOffsetVector(Boss))
+                                Player.Character.Humanoid:MoveTo(getOffsetVector(Boss))
                                 wait(0.1)
                             end
                             if Toggles.BreakBarrier then
                                 local Barrier = getNearestObstacles(true)
-                                if (Player.Character.HumanoidRootPart.Position - Barrier:GetModelCFrame().Position).Magnitude < AuraSettings.KillDistance  then
-                                    Hit(Barrier)
+                                if getDistanceTo(Barrier) < AuraSettings.KillDistance  then
+                                    hit(Barrier)
                                 end
                             end
                         end
@@ -472,14 +460,17 @@ end
 
 local function getRolledAbilities()
     local abilityResults = {}
-    for _i, ability in game:GetService("Players").LocalPlayer.PlayerGui.Reroll.Rerolls.ScrollingFrame:GetChildren() do
+    for _i, ability in RerollPath.Rerolls.ScrollingFrame:GetChildren() do
         if (ability.Name ~= "RollTemplate")  then
             continue
         end
         for i, v in next, getconnections(ability.RollTemplate.Accept.MouseButton1Click) do
             for i2, v2 in next, getupvalues(v.Function) do
                 if(type(v2) == "table" and v2.Ability) then
-                    abilityResults[v2.Ability] = v2.Potential
+                    local ability = {potential = nil, accept = nil}
+                    ability.potential = v2.Potential
+                    ability.accept = v.Function
+                    abilityResults[v2.Ability] = ability
                 end
             end
         end
@@ -487,40 +478,39 @@ local function getRolledAbilities()
     return abilityResults
 end
 
+local buttonPosition = RerollPath.Rerolls.X.AbsolutePosition
+local buttonSize = RerollPath.Rerolls.X.AbsoluteSize
 
-local function AutoRoll()
+local buttonCenter = buttonPosition + (buttonSize / 2)
+
+local function autoRoll()
     spawn(function()
         while wait() and Toggles.AutoRoll do
             RerollPath.Enabled = not RollSettings.Hide
-
-            local rolledAbilities
-            repeat
-                rolledAbilities = getRolledAbilities()
-                if (#rolledAbilities == 0) then
-                    Rep.Reroll:InvokeServer(nil, nil, true)
-                end
-                wait(1)
-            until #rolledAbilities >= 10
-
-            for ability, potential in rolledAbilities do 
-                print(ability, potential)
-
-                if (potential >= RollSettings.Threshold) or (potential>= AbilityDict[ability] and AbilityDict[ability] ~= 0) then
-                    RerollPath.Enabled = true
-                    if Toggles.Store then
-                        return
-                    end
-                    Toggles.AutoRoll = false
-                end
-
-            end
-
-            for i,v in pairs(getconnections(RerollPath.Rerolls.x.MouseButton1Click)) do
-                v.Function()
-            end
-
-           
             Rep.Reroll:InvokeServer(nil, nil, true)
+
+            RerollPath.ChildRemoved:Connect(function()
+                local rolledAbilities = getRolledAbilities()
+                if (#rolledAbilities >= 10) then
+                    for ability in rolledAbilities do 
+                        print(ability, ability.potential)
+        
+                        if (ability.potential >= RollSettings.Threshold) or (ability.potential>= AbilityDict[ability] and AbilityDict[ability] ~= 0) then
+                            RerollPath.Enabled = true
+                            Toggles.AutoRoll = false
+                            if Toggles.Store then
+                                ability.accept()
+                            end
+                        end
+        
+                    end
+        
+                    VirtualUser:ClickButton2(buttonCenter)
+                    -- for i,v in pairs(getconnections(RerollPath.Rerolls.X.MouseButton1Click)) do
+                    --     v.Function()
+                    -- end
+                end
+            end)
         end
     end)
 end
@@ -530,14 +520,27 @@ spawn(function()
 		game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(character)
             local Players = Get.Players
             local Player = Players.LocalPlayer
-            Attack = nil
+            attack = nil
 		end)
 		game:GetService("Players").LocalPlayer.Character:WaitForChild("Humanoid").Died()
 	end
 end)
 
 
-Farm()
+RunService.Stepped:Connect(
+   function()
+       if Toggles.Farm then
+           for i, v in pairs(Player.Character:GetChildren()) do
+               if v:IsA("BasePart") then
+                   v.CanCollide = false
+               end
+           end
+       end
+   end
+)
+
+
+farm()
 
 
 
@@ -640,7 +643,7 @@ local ToggleAutoRoll = PageRoll.AddToggle("Auto Roll Ability", false, function(v
     Toggles.AutoRoll = value
     RerollPath.Enabled = true
     if value then
-        AutoRoll()
+        autoRoll()
     end
 end)
 
