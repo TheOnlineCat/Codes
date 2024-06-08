@@ -495,14 +495,14 @@ local function autoRoll()
 
             local rolledAbilities = getRolledAbilities()
             if (#rolledAbilities >= 10) then
-                for _i, ability in rolledAbilities do 
-                    print(ability.name, ability.potential)
-    
+                for _i, ability in rolledAbilities do     
                     if (ability.potential >= RollSettings.Threshold) or (ability.potential >= AbilityDict[ability.name] and AbilityDict[ability.name] ~= 0) then
                         RerollPath.Enabled = true
-                        Toggles.AutoRoll = false
                         if Toggles.Store then
                             ability.accept()
+                        else
+                            Toggles.AutoRoll = false
+                            return
                         end
                     end
     
