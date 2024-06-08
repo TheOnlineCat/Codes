@@ -489,32 +489,33 @@ local buttonCenter = buttonPosition + (buttonSize / 2)
 
 local function autoRoll()
     spawn(function()
-        while wait() and Toggles.AutoRoll do
+        while wait(0.1) and Toggles.AutoRoll do
             RerollPath.Enabled = not RollSettings.Hide
-            Rep.Reroll:InvokeServer(nil, nil, true)
 
-            RerollPath.ChildRemoved:Connect(function()
-                local rolledAbilities = getRolledAbilities()
-                if (#rolledAbilities >= 10) then
-                    for ability in rolledAbilities do 
-                        print(ability, ability.potential)
-        
-                        if (ability.potential >= RollSettings.Threshold) or (ability.potential>= AbilityDict[ability] and AbilityDict[ability] ~= 0) then
-                            RerollPath.Enabled = true
-                            Toggles.AutoRoll = false
-                            if Toggles.Store then
-                                ability.accept()
-                            end
+            local rolledAbilities = getRolledAbilities()
+            print(rolledAbilities)
+            if (#rolledAbilities >= 10) then
+                for ability in rolledAbilities do 
+                    print(ability, ability.potential)
+    
+                    if (ability.potential >= RollSettings.Threshold) or (ability.potential>= AbilityDict[ability] and AbilityDict[ability] ~= 0) then
+                        RerollPath.Enabled = true
+                        Toggles.AutoRoll = false
+                        if Toggles.Store then
+                            ability.accept()
                         end
-        
                     end
-        
-                    VirtualUser:ClickButton2(buttonCenter)
-                    -- for i,v in pairs(getconnections(RerollPath.Rerolls.X.MouseButton1Click)) do
-                    --     v.Function()
-                    -- end
+    
                 end
-            end)
+    
+                VirtualUser:ClickButton2(buttonCenter)
+                -- for i,v in pairs(getconnections(RerollPath.Rerolls.X.MouseButton1Click)) do
+                --     v.Function()
+                -- end
+                Rep.Reroll:InvokeServer(nil, nil, true)
+            elseif (#rolledAbilities == 0) then
+                Rep.Reroll:InvokeServer(nil, nil, true)
+            end
         end
     end)
 end
