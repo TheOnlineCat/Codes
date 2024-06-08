@@ -504,42 +504,40 @@ game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(funct
     if child.Name == "Finished" then
         count = count + 1
         if (count >= 10) then
-            print("roll finished")
+            spawn(function()
+                print("roll finished")
     
-            local rolledAbilities = getRolledAbilities()
-    
-            for _i, ability in rolledAbilities do     
-                if (ability.potential >= RollSettings.Threshold) or (ability.potential >= AbilityDict[ability.name] and AbilityDict[ability.name] ~= 0) then
-                    RerollPath.Enabled = true
-                    if Toggles.Store then
-                        ability.accept()
-                    else
-                        Toggles.AutoRoll = false
-                        return
+                local rolledAbilities = getRolledAbilities()
+        
+                for _i, ability in rolledAbilities do     
+                    if (ability.potential >= RollSettings.Threshold) or (ability.potential >= AbilityDict[ability.name] and AbilityDict[ability.name] ~= 0) then
+                        RerollPath.Enabled = true
+                        if Toggles.Store then
+                            ability.accept()
+                        else
+                            Toggles.AutoRoll = false
+                            return
+                        end
                     end
                 end
-            end
     
-            print("closing")
-    
-            clickEndRoll()
-    
-            -- for i,v in pairs(getconnections(RerollPath.Rerolls.X.MouseButton1Click)) do
-            --     v.Function()
-            -- end
-    
-            print("rolling again")
-    
-            wait(1)
-            Rep.Reroll:InvokeServer(nil, nil, true)
-            count = 0
+                print("closing")
+        
+                clickEndRoll()
+        
+                print("rolling again")
+        
+                wait(1)
+                Rep.Reroll:InvokeServer(nil, nil, true)
+                count = 0
+            end)
         end
     end
 end)
 
 local function autoRoll()
-    Rep.Reroll:InvokeServer(nil, nil, true)
     count = 0
+    Rep.Reroll:InvokeServer(nil, nil, true)
 end
 
 spawn(function()
