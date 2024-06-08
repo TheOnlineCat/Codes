@@ -395,12 +395,12 @@ local function farm()
 end
 
 
-
 local BossList = {}
-local BossPosition = Workspace:FindFirstChild("BossSpawns")[1].CFrame.Position
-for i, v in pairs(Workspace:FindFirstChild("BossSpawns")) do
+local BossPosition = Workspace:FindFirstChild("BossSpawns") :GetChildren()[1].CFrame.Position
+for i, v in pairs(Workspace:FindFirstChild("BossSpawns") :GetChildren()) do
     table.insert(BossList, v.Name) --append name to list
 end
+
 
 local function LocateBoss()
     for i, v in ipairs(Workspace:GetChildren()) do
