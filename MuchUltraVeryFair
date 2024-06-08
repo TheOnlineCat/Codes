@@ -504,8 +504,9 @@ game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(funct
     if child.Name == "Finished" then
         count = count + 1
         if (count >= 10) then
+            count = 0
             spawn(function()
-                wait(4)
+                wait(3)
                 print("roll finished")
 
                 
@@ -528,12 +529,11 @@ game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(funct
         
                 clickEndRoll()
 
-                wait(1.5)
+                wait(1)
         
                 print("rolling again")
         
                 Rep.Reroll:InvokeServer(nil, nil, true)
-                count = 0
             end)
         end
     end
