@@ -632,12 +632,12 @@ local MobAuraToggle = PageKillAura.AddToggle("Only Mob Kill Aura (Overrides Kill
     Toggles.MobAura = value    
 end)
 
-local SliderKillDistance = PageKillAura.AddSlider("Kill Aura Distance", {Min = 0, Max = 150, Def = AuraSettings.KillDistance}, function(value)
+local SliderKillDistance = PageKillAura.AddSlider("Kill Aura Distance", {Min = 0, Max = 500, Def = AuraSettings.KillDistance}, function(value)
     AuraSettings.KillDistance = value
     Save("AuraSettings", AuraSettings)
 end)
 
-local SliderPunchSpeed = PageKillAura.AddSlider("Hit Speed (ms)", {Min = 1, Max = 3000, Def = AuraSettings.PunchSpeed * 1000}, function(value)
+local SliderPunchSpeed = PageKillAura.AddSlider("Hit Speed (ms)", {Min = 1, Max = 1000, Def = AuraSettings.PunchSpeed * 1000}, function(value)
     AuraSettings.PunchSpeed = value/1000
     Save("AuraSettings", AuraSettings)
 end)
