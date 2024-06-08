@@ -395,9 +395,10 @@ local function farm()
 end
 
 
+B = Workspace:FindFirstChild("BossSpawns") --Get enemy names and stats
 local BossList = {}
-local BossPosition = Workspace:FindFirstChild("BossSpawns") :GetChildren()[1].CFrame.Position
-for i, v in pairs(Workspace:FindFirstChild("BossSpawns") :GetChildren()) do
+local BossPosition = B:GetChildren()[1].CFrame.Position
+for i, v in pairs(B:GetChildren()) do
     table.insert(BossList, v.Name) --append name to list
 end
 
