@@ -83,8 +83,8 @@ AuraSettings = Load("AuraSettings")
 RollSettings = Load("RollSettings")
 FarmSettings = Load("FarmSettings")
 
-local VirtualUser=game:service'VirtualUser'
-game:service'Players'.LocalPlayer.Idled:connect(function()
+local VirtualUser=Get.VirtualUser
+Player.Idled:connect(function()
 VirtualUser:CaptureController()
 VirtualUser:ClickButton2(Vector2.new())
 end)
@@ -112,13 +112,13 @@ hookfunction(Old.addparticle, function()
 end)
 
 
-function HideName()
-    for i,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-        if v.ClassName == "BillboardGui" then
-            v:Destroy()
-        end
-    end
-end
+-- function HideName()
+--     for i,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+--         if v.ClassName == "BillboardGui" then
+--             v:Destroy()
+--         end
+--     end
+-- end
 
 
 local MobList = {}
@@ -483,27 +483,35 @@ local function getRolledAbilities()
     return abilityResults
 end
 
-local VirtualInputManager = game:GetService("VirtualInputManager")
 local x = RerollPath.Rerolls.X.AbsolutePosition.X + RerollPath.Rerolls.X.AbsoluteSize.X / 2
 local y = RerollPath.Rerolls.X.AbsolutePosition.Y + RerollPath.Rerolls.X.AbsoluteSize.Y
 
 local count = 0
 
+local function clickEndRoll() 
+    local VirtualInputManager = game:GetService("VirtualInputManager")
+    VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
+    VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
+end
+
 game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(function(child)
     if child.Name == "Finished" then
         count = count + 1
+        print(count)
     end
 end)
 
 local function autoRoll()
     Rep.Reroll:InvokeServer(nil, nil, true)
+    count = 0
     spawn(function()
         while wait(0.1) and Toggles.AutoRoll do
             RerollPath.Enabled = not RollSettings.Hide
 
             local rolledAbilities = getRolledAbilities()
             if (count >= 10) then
-                count = 0
+                wait(1)
+                print("roll finished")
                 for _i, ability in rolledAbilities do     
                     if (ability.potential >= RollSettings.Threshold) or (ability.potential >= AbilityDict[ability.name] and AbilityDict[ability.name] ~= 0) then
                         RerollPath.Enabled = true
@@ -516,14 +524,17 @@ local function autoRoll()
                     end
                 end
     
-                print("rolling again")
+                print("closing")
 
-                VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
-                VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
+                clickEndRoll()
 
+                count = 0
                 -- for i,v in pairs(getconnections(RerollPath.Rerolls.X.MouseButton1Click)) do
                 --     v.Function()
                 -- end
+
+                print("rolling again")
+
                 Rep.Reroll:InvokeServer(nil, nil, true)
             end
         end
@@ -729,14 +740,14 @@ end
 
 local PageMisc = MainUI.AddPage("Misc", false)
 
-local HideName = PageMisc.AddButton("Hide Identity (Continuous)", function()
-	spawn(function()
-		while true do
-    		HideName()
-    		wait(1)
-    	end
-	end)
-end)
+-- local HideName = PageMisc.AddButton("Hide Identity (Continuous)", function()
+-- 	spawn(function()
+-- 		while true do
+--     		HideName()
+--     		wait(1)
+--     	end
+-- 	end)
+-- end)
 
 local AttackBarrier = PageMisc.AddToggle("Damage Arlo Boss Barrier", false, function(value)
     Toggles.BreakBarrier = value
