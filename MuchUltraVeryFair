@@ -495,20 +495,22 @@ end
 
 
 
+local count = 0
+game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(function(child)
+    if child.Name == "Finished" then
+        count = count + 1
+        print(count)
+    end
+end)
+
 local function autoRoll()
     Rep.Reroll:InvokeServer(nil, nil, true)
+    count = 0
     spawn(function()
-        local count = 0
-        game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(function(child)
-            if child.Name == "Finished" then
-                count = count + 1
-                print(count)
-            end
-        end)
-
         while wait(0.1) and Toggles.AutoRoll do
             print(count)
-            if (count > 9) then
+            if (count >= 10) then
+                wait(0.5)
                 print("roll finished")
 
                 local rolledAbilities = getRolledAbilities()
