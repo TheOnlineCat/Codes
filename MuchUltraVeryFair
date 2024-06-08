@@ -506,12 +506,12 @@ local function autoRoll()
     count = 0
     spawn(function()
         while wait(0.1) and Toggles.AutoRoll do
-            RerollPath.Enabled = not RollSettings.Hide
+            -- RerollPath.Enabled = not RollSettings.Hide
 
-            local rolledAbilities = getRolledAbilities()
             if (count >= 10) then
                 wait(1)
                 print("roll finished")
+                local rolledAbilities = getRolledAbilities()
                 for _i, ability in rolledAbilities do     
                     if (ability.potential >= RollSettings.Threshold) or (ability.potential >= AbilityDict[ability.name] and AbilityDict[ability.name] ~= 0) then
                         RerollPath.Enabled = true
@@ -673,10 +673,10 @@ local ToggleAutoRoll = PageRoll.AddToggle("Auto Roll Ability", false, function(v
     end
 end)
 
-local ToggleAutoRoll = PageRoll.AddToggle("Hide GUI when Auto", false, function(value)
-    RollSettings.Hide = value
-    RerollPath.Enabled = true
-end)
+-- local ToggleAutoRoll = PageRoll.AddToggle("Hide GUI when Auto", false, function(value)
+--     RollSettings.Hide = value
+--     RerollPath.Enabled = true
+-- end)
 
 
 local RollThreshold = PageRoll.AddSlider("Roll Minimum Level (Global)", {Min = 0, Max = 30, Def = RollSettings.Threshold}, function(value)
