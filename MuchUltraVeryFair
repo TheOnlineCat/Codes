@@ -487,6 +487,14 @@ local VirtualInputManager = game:GetService("VirtualInputManager")
 local x = RerollPath.Rerolls.X.AbsolutePosition.X + RerollPath.Rerolls.X.AbsoluteSize.X / 2
 local y = RerollPath.Rerolls.X.AbsolutePosition.Y + RerollPath.Rerolls.X.AbsoluteSize.Y
 
+local count = 0
+
+game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(function(child)
+    if child.Name == "Finished" then
+        count = count + 1
+    end
+end)
+
 local function autoRoll()
     Rep.Reroll:InvokeServer(nil, nil, true)
     spawn(function()
@@ -494,7 +502,8 @@ local function autoRoll()
             RerollPath.Enabled = not RollSettings.Hide
 
             local rolledAbilities = getRolledAbilities()
-            if (#rolledAbilities >= 10) then
+            if (count >= 10) then
+                count = 0
                 for _i, ability in rolledAbilities do     
                     if (ability.potential >= RollSettings.Threshold) or (ability.potential >= AbilityDict[ability.name] and AbilityDict[ability.name] ~= 0) then
                         RerollPath.Enabled = true
@@ -505,17 +514,13 @@ local function autoRoll()
                             return
                         end
                     end
-    
                 end
     
                 print("rolling again")
-                
 
                 VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
                 VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
-                --
-                
-                
+
                 -- for i,v in pairs(getconnections(RerollPath.Rerolls.X.MouseButton1Click)) do
                 --     v.Function()
                 -- end
