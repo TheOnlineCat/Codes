@@ -506,16 +506,12 @@ game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(funct
         if (count >= 10) then
             count = 0
             spawn(function()
-                wait(3)
-                print("roll finished")
-
-                
-    
+                wait(0.3)
                 local rolledAbilities = getRolledAbilities()
-        
+                local found = false
                 for _i, ability in rolledAbilities do     
                     if (ability.potential >= RollSettings.Threshold) or (ability.potential >= AbilityDict[ability.name] and AbilityDict[ability.name] ~= 0) then
-                        RerollPath.Enabled = true
+                        found = true
                         if Toggles.Store then
                             ability.accept()
                         else
@@ -525,11 +521,13 @@ game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(funct
                     end
                 end
     
-                print("closing")
+                if found then
+                    wait(2)  
+                end
         
                 clickEndRoll()
 
-                wait(1)
+                wait(0.5)
         
                 print("rolling again")
         
