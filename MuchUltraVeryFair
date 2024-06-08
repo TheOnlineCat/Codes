@@ -486,7 +486,6 @@ end
 local x = RerollPath.Rerolls.X.AbsolutePosition.X + RerollPath.Rerolls.X.AbsoluteSize.X / 2
 local y = RerollPath.Rerolls.X.AbsolutePosition.Y + RerollPath.Rerolls.X.AbsoluteSize.Y
 
-local count = 0
 
 local function clickEndRoll() 
     local VirtualInputManager = game:GetService("VirtualInputManager")
@@ -494,21 +493,23 @@ local function clickEndRoll()
     VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
 end
 
-game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(function(child)
-    if child.Name == "Finished" then
-        count = count + 1
-    end
-end)
+
 
 local function autoRoll()
     Rep.Reroll:InvokeServer(nil, nil, true)
-    count = 0
     spawn(function()
+        local count = 0
+        game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(function(child)
+            if child.Name == "Finished" then
+                count = count + 1
+                print(count)
+            end
+        end)
+        
         while wait(0.1) and Toggles.AutoRoll do
             if (count > 9) then
                 print("roll finished")
 
-                wait(1)
                 local rolledAbilities = getRolledAbilities()
 
                 for _i, ability in rolledAbilities do     
@@ -534,6 +535,7 @@ local function autoRoll()
 
                 print("rolling again")
 
+                wait(1)
                 Rep.Reroll:InvokeServer(nil, nil, true)
             end
         end
