@@ -497,7 +497,6 @@ end
 game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(function(child)
     if child.Name == "Finished" then
         count = count + 1
-        print(count)
     end
 end)
 
@@ -506,12 +505,12 @@ local function autoRoll()
     count = 0
     spawn(function()
         while wait(0.1) and Toggles.AutoRoll do
-            -- RerollPath.Enabled = not RollSettings.Hide
-
-            if (count >= 10) then
-                wait(1)
+            if (count > 9) then
                 print("roll finished")
+
+                wait(1)
                 local rolledAbilities = getRolledAbilities()
+
                 for _i, ability in rolledAbilities do     
                     if (ability.potential >= RollSettings.Threshold) or (ability.potential >= AbilityDict[ability.name] and AbilityDict[ability.name] ~= 0) then
                         RerollPath.Enabled = true
