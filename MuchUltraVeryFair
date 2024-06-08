@@ -528,14 +528,18 @@ game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(funct
                 if found then
                     wait(1)  
                 end
-        
+                
+                repeat
                 clickEndRoll()
-
                 wait(0.3)
-        
+                until not RerollPath.Rerolls.visible or not Toggles.AutoRoll
+
                 print("rolling again")
         
-                Rep.Reroll:InvokeServer(nil, nil, true)
+                repeat
+                    Rep.Reroll:InvokeServer(nil, nil, true)
+                    wait(2)
+                until RerollPath.Rerolls.visible or not Toggles.AutoRoll
             end)
         end
     end
