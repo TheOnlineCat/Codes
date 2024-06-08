@@ -505,8 +505,15 @@ game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(funct
         count = count + 1
         if (count >= 10) then
             spawn(function()
-                wait(10)
+                wait(3)
                 print("roll finished")
+                wait(3)
+                print("roll finished")
+                wait(3)
+                print("roll finished")
+                wait(3)
+                print("roll finished")
+                wait(3)
                 
     
                 local rolledAbilities = getRolledAbilities()
@@ -527,7 +534,7 @@ game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(funct
         
                 clickEndRoll()
 
-                wait(1)
+                wait(3)
         
                 print("rolling again")
         
