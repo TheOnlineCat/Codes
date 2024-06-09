@@ -563,46 +563,51 @@ end
 
 
 local function massUpgrade(type, ignoreUpgraded, threshold)
-    local validMaterials = {}
-    local data = ""
-    if type == "Fist" then
-        data = "Fists"
-    else
-        data = "Relics"
-    end
-    for id, fields in getUserData()[data] do
-        if(ignoreUpgraded and fields.BaseLevel ~= fields) then 
-            continue 
-        end
-        if fields.Level <= threshold then
-            table.insert(validMaterials, id)
-        end
-    end
+    spawn(function()
+        local validMaterials = {}
 
-    repeat
-        local args = {
-            [1] = type,
-            [2] = {
-                [1] = table.remove(validMaterials),
-                [2] = table.remove(validMaterials),
-                [3] = table.remove(validMaterials),
-                [4] = table.remove(validMaterials),
-            }
-        }
-        Rep.UpgradeItem:InvokeServer(unpack(args))
-        wait(0.1)
-    until #validMaterials < 4
+        local data = {}
+        if type == "Fist" then
+            data = getUserData().Fists
+        else
+            data = getUserData().Relics
+        end
 
-    while #validMaterials > 0 do
-        local args = {
-            [1] = type,
-            [2] = {
-                [1] = table.remove(validMaterials)
+        for id, fields in data do
+            if(ignoreUpgraded and fields.BaseLevel ~= fields.Level) then 
+                continue 
+            end
+            if fields.Level <= threshold then
+                table.insert(validMaterials, id)
+            end
+        end
+
+        repeat
+            local args = {
+                [1] = type,
+                [2] = {
+                    [1] = table.remove(validMaterials),
+                    [2] = table.remove(validMaterials),
+                    [3] = table.remove(validMaterials),
+                    [4] = table.remove(validMaterials),
+                }
             }
-        }
-        Rep.UpgradeItem:InvokeServer(unpack(args))
-        wait(0.1)
-    end
+            Rep.UpgradeItem:InvokeServer(unpack(args))
+            wait(0.1)
+        until #validMaterials < 4
+
+        while #validMaterials > 0 do
+            local args = {
+                [1] = type,
+                [2] = {
+                    [1] = table.remove(validMaterials)
+                }
+            }
+            Rep.UpgradeItem:InvokeServer(unpack(args))
+            wait(0.1)
+        end
+
+    end)
 end
 
 spawn(function()
