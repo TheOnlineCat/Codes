@@ -649,7 +649,13 @@ function UILibrary.Load(GUITitle)
             local Minimum = Configuration.Minimum or Configuration.minimum or Configuration.Min or Configuration.min
             local Maximum = Configuration.Maximum or Configuration.maximum or Configuration.Max or Configuration.max
             local Default = Configuration.Default or Configuration.default or Configuration.Def or Configuration.def
-            local Decimal = math.floor(Configuration.Decimal or Configuration.decimal or Configuration.Dec or Configuration.dec)
+            local Decimal = Configuration.Decimal or Configuration.decimal or Configuration.Dec or Configuration.dec
+            if Decimal then
+                Decimal = math.floor(Decimal)
+            else
+                Decimal = 0
+            end
+            
             
             if Minimum > Maximum then
                 local StoreValue = Minimum
@@ -698,7 +704,8 @@ function UILibrary.Load(GUITitle)
                 SliderMove = Mouse.Move:Connect(function()
                     Tween(SliderFill, {ImageTransparency = 0.5})
                     local X, Y, XScale, YScale = GetXY(SliderButton)
-                    local Value = math.floor(Minimum + ((Maximum - Minimum) * XScale))
+                    local Value = math.floor((Minimum + ((Maximum - Minimum) * XScale) * math.pow(10, Decimal)))
+                    Value = Value / math.pow(10, Decimal)
                     Callback(Value)
                     SliderButton.Text = Text..": "..tostring(Value)
                     local TargetSize = UDim2.new(XScale,0,1,0)
