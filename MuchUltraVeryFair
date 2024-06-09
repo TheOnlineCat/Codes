@@ -593,7 +593,6 @@ local function massUpgrade(type, ignoreUpgraded, threshold)
                 }
             }
             Rep.UpgradeItem:InvokeServer(unpack(args))
-            wait(0.1)
         until #validMaterials < 4
 
         while #validMaterials > 0 do
@@ -604,7 +603,6 @@ local function massUpgrade(type, ignoreUpgraded, threshold)
                 }
             }
             Rep.UpgradeItem:InvokeServer(unpack(args))
-            wait(0.1)
         end
 
     end)
