@@ -91,6 +91,7 @@ end
 AuraSettings = Load("AuraSettings")
 RollSettings = Load("RollSettings")
 FarmSettings = Load("FarmSettings")
+UpgradeSettings = Load("UpgradeSettings")
 
 local VirtualUser = game:service'VirtualUser'
 game:service'Players'.LocalPlayer.Idled:connect(function()
@@ -572,13 +573,30 @@ local function massUpgrade(type, ignoreUpgraded, threshold)
         end
     end
 
-    local args = {
-        [1] = type,
-        [2] = validMaterials
-    }
-    
-    Rep.UpgradeItem:InvokeServer(unpack(args))
-    
+    repeat
+        local args = {
+            [1] = type,
+            [2] = {
+                [1] = table.remove(validMaterials),
+                [2] = table.remove(validMaterials),
+                [3] = table.remove(validMaterials),
+                [4] = table.remove(validMaterials),
+            }
+        }
+        Rep.UpgradeItem:InvokeServer(unpack(args))
+        wait(0.1)
+    until #validMaterials < 4
+
+    while #validMaterials > 0 do
+        local args = {
+            [1] = type,
+            [2] = {
+                [1] = table.remove(validMaterials)
+            }
+        }
+        Rep.UpgradeItem:InvokeServer(unpack(args))
+        wait(0.1)
+    end
 end
 
 spawn(function()
