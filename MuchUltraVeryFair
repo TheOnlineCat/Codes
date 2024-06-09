@@ -564,7 +564,13 @@ end
 
 local function massUpgrade(type, ignoreUpgraded, threshold)
     local validMaterials = {}
-    for id, fields in getUserData()[type + "s"] do
+    local data = ""
+    if type == "Fist" then
+        data = "Fists"
+    else
+        data = "Relics"
+    end
+    for id, fields in getUserData()[data] do
         if(ignoreUpgraded and fields.BaseLevel ~= fields) then 
             continue 
         end
