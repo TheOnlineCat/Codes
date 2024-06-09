@@ -14,7 +14,8 @@ getgenv().FarmSettings = {
     AuraDistance = 6,
     FarmDistance = 3,
     KillPlayers = true,
-    SelectedQuest = nil
+    SelectedQuest = nil,
+    LeaveOnMod = true
 }
 
 getgenv().AuraSettings = {
@@ -43,6 +44,7 @@ local Workspace = Get.Workspace
 local RunService = Get.RunService
 local Rep = Get.ReplicatedStorage
 local HttpService = Get.HttpService
+local TeleportService = Get.TeleportService
 
 
 local function Save(File, Table)
@@ -608,6 +610,43 @@ local function massUpgrade(type, ignoreUpgraded, threshold)
     end)
 end
 
+
+
+local function getServerList(placeId)
+    local servers = {}
+    local cursor = ""
+    local currentJobId = game.JobId
+
+    repeat
+        local url = "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=100&cursor=" .. cursor
+        local response = game:HttpGet(url)
+        local data = HttpService:JSONDecode(response)
+        
+        for _, server in ipairs(data.data) do
+            if server.playing < server.maxPlayers and server.id ~= currentJobId then
+                table.insert(servers, server.id)
+            end
+        end
+        
+        cursor = data.nextPageCursor
+    until not cursor
+
+    return servers
+end
+
+local function serverHop()
+    local gameId = game.PlaceId
+    local servers = getServerList(gameId)
+    if #servers > 0 then
+        local newServerId = servers[math.random(1, #servers)]
+        print("Hopping to server: " .. newServerId)
+        TeleportService:TeleportToPlaceInstance(gameId, newServerId, Player)
+    else
+        Player:Kick("No servers found.")
+    end
+end
+
+
 spawn(function()
 	while wait() do
 		game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(character)
@@ -633,6 +672,34 @@ RunService.Stepped:Connect(
 )
 
 
+Players.PlayerAdded:Connect(function(player)
+    if FarmSettings.LeaveOnMod then
+        local function getUserGroupRank(userId, groupId)
+            local url = "https://groups.roblox.com/v1/users/" .. userId .. "/groups/roles"
+            local response = game:HttpGet(url)
+            local data = HttpService:JSONDecode(response)
+            
+            for _, groupInfo in ipairs(data.data) do
+                if groupInfo.group.id == groupId then
+                    return groupInfo.role.rank
+                end
+            end
+            
+            return nil
+        end
+        
+        local userId = player.UserId
+        local groupId = 15508585
+        local rank = getUserGroupRank(userId, groupId)
+        local privilegeThreshold = 150
+        
+        if rank and rank >= privilegeThreshold then
+            print("Privileged member joined: " .. player.Name .. " with rank: " .. rank)
+            serverHop()
+        end
+    end
+    
+end)
 
 
 farm()
@@ -864,4 +931,13 @@ end)
 
 local Reset = PageMisc.AddButton("Reset Character", function()
     Player.Character.Humanoid.Health = 0
+end)
+
+local ServerHop = PageMisc.AddButton("Server Hop", function()
+    serverHop()
+end)
+
+local autoRejoin = PageMisc.AddToggle("Auto Server Hop on Moderator Join", FarmSettings.LeaveOnMod, function(value)
+    FarmSettings.LeaveOnMod = value
+    Save("FarmSettings", FarmSettings)
 end)
