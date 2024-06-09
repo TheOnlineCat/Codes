@@ -31,7 +31,7 @@ getgenv().RollSettings = {
     Hide = false
 }
 
-getgenv().Upgrade = {
+getgenv().UpgradeSettings = {
     Threshold = 5,
     IgnoreUpgraded = false
 }
@@ -764,14 +764,14 @@ local PageUpgrade = MainUI.AddPage("Upgrade", false)
 local MassUpgradeFistButton = PageUpgrade.AddButton(
     "Mass Upgrade Current Fist",
     function()
-        massUpgrade("Fist", Upgrade.IgnoreUpgraded, Upgrade.Threshold)
+        massUpgrade("Fist", UpgradeSettings.IgnoreUpgraded, UpgradeSettings.Threshold)
     end
 )
 
 local MassUpgradeRelicButton = PageUpgrade.AddButton(
     "Mass Upgrade Current Relic",
     function()
-        massUpgrade("Relic", Upgrade.IgnoreUpgraded, Upgrade.Threshold)
+        massUpgrade("Relic", UpgradeSettings.IgnoreUpgraded, UpgradeSettings.Threshold)
     end
 )
 
@@ -780,21 +780,21 @@ local UpgradeThresholdSlider = PageUpgrade.AddSlider(
     {
         Min = 0.0, 
         Max = 10.0, 
-        Def = Upgrade.Threshold,
+        Def = UpgradeSettings.Threshold,
         Decimal = 1
     }, 
     function(value)
-        Upgrade.Threshold = value
-        Save("UpgradeSettings", Upgrade)
+        UpgradeSettings.Threshold = value
+        Save("UpgradeSettings", UpgradeSettings)
     end
 )
 
 local IgnoreUpgraded = PageUpgrade.AddToggle(
     "Ignore Upgraded As Material", 
-    Upgrade.IgnoreUpgraded, 
+    UpgradeSettings.IgnoreUpgraded, 
     function(value)
-        Upgrade.IgnoreUpgraded = value
-        Save("UpgradeSettings", Upgrade)
+        UpgradeSettings.IgnoreUpgraded = value
+        Save("UpgradeSettings", UpgradeSettings)
     end
 )
 
