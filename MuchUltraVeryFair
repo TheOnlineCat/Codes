@@ -31,6 +31,11 @@ getgenv().RollSettings = {
     Hide = false
 }
 
+getgenv().Upgrade = {
+    Threshold = 5,
+    IgnoreUpgraded = false
+}
+
 
 local Players = Get.Players
 local Player = Players.LocalPlayer
@@ -63,6 +68,10 @@ local function Load(File)
     end
 end
 
+local getUserData = nil
+for i, v in next, getconnections(Player.PlayerGui.MainClient.Equipped.Relic.enhance.MouseButton1Click) do
+    getUserData = function() return getupvalue(v.Function, 4) end
+end
 
 getgenv().AbilityDict = {}
 local RerollPath = Player.PlayerGui.Reroll
@@ -550,6 +559,28 @@ local function autoRoll()
     Rep.Reroll:InvokeServer(nil, nil, true)
 end
 
+
+
+local function massUpgrade(type, ignoreUpgraded, threshold)
+    local validMaterials = {}
+    for id, fields in getUserData()[type + "s"] do
+        if(ignoreUpgraded and fields.BaseLevel ~= fields) then 
+            continue 
+        end
+        if fields.Level >= threshold then
+            table.insert(validMaterials, id)
+        end
+    end
+
+    local args = {
+        [1] = type,
+        [2] = validMaterials
+    }
+    
+    Rep.UpgradeItem:InvokeServer(unpack(args))
+    
+end
+
 spawn(function()
 	while wait() do
 		game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(character)
@@ -573,6 +604,8 @@ RunService.Stepped:Connect(
        end
    end
 )
+
+
 
 
 farm()
@@ -725,6 +758,45 @@ local SliderGear = PageRoll.AddSlider("Equipment Roll Amount", {Min = 0, Max = 1
     RollSettings.Amount = value
     Save("RollSettings", RollSettings)
 end)
+
+local PageUpgrade = MainUI.AddPage("Upgrade", false)
+
+local MassUpgradeFistButton = PageUpgrade.AddButton(
+    "Mass Upgrade Current Fist",
+    function()
+        massUpgrade("Fist", Upgrade.IgnoreUpgraded, Upgrade.Threshold)
+    end
+)
+
+local MassUpgradeRelicButton = PageUpgrade.AddButton(
+    "Mass Upgrade Current Relic",
+    function()
+        massUpgrade("Relic", Upgrade.IgnoreUpgraded, Upgrade.Threshold)
+    end
+)
+
+local UpgradeThresholdSlider = PageUpgrade.AddSlider(
+    "Equipment Roll Amount", 
+    {
+        Min = 0.0, 
+        Max = 10.0, 
+        Def = Upgrade.Threshold
+    }, 
+    function(value)
+        Upgrade.Threshold = value
+        Save("UpgradeSettings", Upgrade)
+    end
+)
+
+local IgnoreUpgraded = PageUpgrade.AddToggle(
+    "Ignore Upgraded As Material", 
+    Upgrade.IgnoreUpgraded, 
+    function(value)
+        Upgrade.IgnoreUpgraded = value
+        Save("UpgradeSettings", Upgrade)
+    end
+)
+
 
 
 
