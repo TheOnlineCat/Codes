@@ -567,7 +567,7 @@ local function massUpgrade(type, ignoreUpgraded, threshold)
         if(ignoreUpgraded and fields.BaseLevel ~= fields) then 
             continue 
         end
-        if fields.Level >= threshold then
+        if fields.Level <= threshold then
             table.insert(validMaterials, id)
         end
     end
