@@ -379,7 +379,7 @@ local function farm()
                             hit(obstacle)
                         else
                             if currentDistance >= 300 then
-                                Player.Character:MoveTo(getOffsetVector(enemy))
+                                Player.Character:MoveTo(getOffsetVector(enemy) + Vector3.new(0, 3, 0))
                             else
                                 Player.Character.Humanoid:MoveTo(getOffsetVector(enemy))
                             end
