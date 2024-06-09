@@ -625,12 +625,12 @@ local FarmToggle = PageFarm.AddToggle("Auto Farm (Set Aura Hit Mode)", false, fu
     Toggles.Farm = value
 end)
 
-local SliderFarmDistance = PageFarm.AddSlider("Farm Distance", {Min = 0, Max = 15, Def = FarmSettings.FarmDistance, Decimal = 0}, function(value)
+local SliderFarmDistance = PageFarm.AddSlider("Farm Distance", {Min = 0, Max = 15, Def = FarmSettings.FarmDistance}, function(value)
     FarmSettings.FarmDistance = value
     Save("FarmSettings", FarmSettings)
 end)
 
-local SliderAuraDistance = PageFarm.AddSlider("Farm Aura Distance", {Min = 0, Max = 20, Def = FarmSettings.AuraDistance, Decimal = 0}, function(value)
+local SliderAuraDistance = PageFarm.AddSlider("Farm Aura Distance", {Min = 0, Max = 20, Def = FarmSettings.AuraDistance}, function(value)
     FarmSettings.AuraDistance = value
     Save("FarmSettings", FarmSettings)
 end)
@@ -673,12 +673,12 @@ local MobAuraToggle = PageKillAura.AddToggle("Only Mob Kill Aura (Overrides Kill
     Toggles.MobAura = value    
 end)
 
-local SliderKillDistance = PageKillAura.AddSlider("Kill Aura Distance", {Min = 0, Max = 500, Def = AuraSettings.KillDistance, Decimal = 0}, function(value)
+local SliderKillDistance = PageKillAura.AddSlider("Kill Aura Distance", {Min = 0, Max = 500, Def = AuraSettings.KillDistance}, function(value)
     AuraSettings.KillDistance = value
     Save("AuraSettings", AuraSettings)
 end)
 
-local SliderPunchSpeed = PageKillAura.AddSlider("Hit Speed (ms)", {Min = 1, Max = 1000, Def = AuraSettings.PunchSpeed * 1000, Decimal = 0}, function(value)
+local SliderPunchSpeed = PageKillAura.AddSlider("Hit Speed (ms)", {Min = 1, Max = 1000, Def = AuraSettings.PunchSpeed * 1000}, function(value)
     AuraSettings.PunchSpeed = value/1000
     Save("AuraSettings", AuraSettings)
 end)
@@ -754,7 +754,7 @@ local RollStyle = PageRoll.AddButton("Roll Style", function()
     end
 end)
 
-local SliderGear = PageRoll.AddSlider("Equipment Roll Amount", {Min = 0, Max = 100, Def = RollSettings.Amount, Decimal = 0}, function(value)
+local SliderGear = PageRoll.AddSlider("Equipment Roll Amount", {Min = 0, Max = 100, Def = RollSettings.Amount}, function(value)
     RollSettings.Amount = value
     Save("RollSettings", RollSettings)
 end)
