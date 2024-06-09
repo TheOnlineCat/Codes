@@ -644,7 +644,7 @@ function UILibrary.Load(GUITitle)
             end)
         end
         
-        function PageLibrary.AddSlider(Text, ConfigurationDictionary, Callback, Parent)
+        function PageLibrary.AddSlider(Text, ConfigurationDictionary, Callback, Decimal, Parent)
             local Configuration = ConfigurationDictionary
             local Minimum = Configuration.Minimum or Configuration.minimum or Configuration.Min or Configuration.min
             local Maximum = Configuration.Maximum or Configuration.maximum or Configuration.Max or Configuration.max
@@ -683,11 +683,17 @@ function UILibrary.Load(GUITitle)
             SliderFill.ZIndex = 5
             SliderFill.ImageTransparency = 0.7
             SliderFill.Parent = SliderButton
+        
+            local FloatingPoint = 0
+            if FloatingPoint ~= nil and FloatingPoint >= 1 then
+                FloatingPoint = math.floor(Decimal)
+            end
             
             SliderButton.MouseButton1Down:Connect(function()
                 Tween(SliderFill, {ImageTransparency = 0.5})
                 local X, Y, XScale, YScale = GetXY(SliderButton)
-                local Value = math.floor(Minimum + ((Maximum - Minimum) * XScale))
+                local Value = math.floor((Minimum + ((Maximum - Minimum) * XScale) * math.pow(10, Decimal)))
+                Value = Value / math.pow(10, Decimal)
                 Callback(Value)
                 SliderButton.Text = Text..": "..tostring(Value)
                 local TargetSize = UDim2.new(XScale,0,1,0)
