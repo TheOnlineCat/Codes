@@ -903,6 +903,50 @@ local IgnoreUpgraded = PageUpgrade.AddToggle(
 
 local PageAutoRoll = MainUI.AddPage("Auto Config", true)
 
+local autoLuck = PageMisc.AddToggle("Auto Cast Ultra & Super Luck", false, function(value)
+    RollSettings.Luck = value
+    Save("RollSettings", RollSettings)
+    if value then
+        spawn(function()
+            while RollSettings.Luck do
+                if getUserData().Ability ~= "Luck Manipulation" then
+                    wait(1)
+                    continue
+                end
+
+                if os.time() > getUserData().LastSelfGamble then
+                    local args = {
+                        [1] = "Self Gamble",
+                        [2] = {
+                            ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
+                            ["Boost"] = "Ultra Lucky"
+                        }
+                    }
+                    
+                    Rep.Remotes.SkillCast:FireServer(unpack(args))
+                end
+                
+                if os.time() > getUserData().LastGroupGamble then
+                    local args = {
+                        [1] = "Group Gamble",
+                        [2] = {
+                            ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
+                            ["Boost"] = "Super Lucky",
+                            ["HitPlayers"] = {
+                                [1] = Player
+                            }
+                        }
+                    }
+                    
+                    Rep.Remotes.SkillCast:FireServer(unpack(args))
+                end
+
+                wait(1)
+            end
+        end)
+    end
+end)
+
 local Button1 = PageAutoRoll.AddButton("Set Minimum Levels (Overrides Global, 0 is OFF)", function()
     for i, v in pairs(AbilityDict) do
         print("key: "..i.. " value: ".. v)
@@ -933,50 +977,6 @@ local PageMisc = MainUI.AddPage("Misc", false)
 
 local AttackBarrier = PageMisc.AddToggle("Damage Arlo Boss Barrier", false, function(value)
     Toggles.BreakBarrier = value
-end)
-
-local LuckySpam = PageMisc.AddToggle("Auto Cast Ultra & Super Luck", false, function(value)
-    RollSettings.Luck = value
-    Save("RollSettings", RollSettings)
-    if value then
-        spawn(function()
-            while RollSettings.Luck do
-                if getUserData().Ability ~= "Luck Manipulation" then
-                    wait(1)
-                    continue
-                end
-
-                if os.time() > getUserData().LastSelfGamble then
-                    local args = {
-                        [1] = "Self Gamble",
-                        [2] = {
-                            ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
-                            ["Boost"] = "Ultra Luck"
-                        }
-                    }
-                    
-                    Rep.Remotes.SkillCast:FireServer(unpack(args))
-                end
-                
-                if os.time() > getUserData().LastGroupGamble then
-                    local args = {
-                        [1] = "Group Gamble",
-                        [2] = {
-                            ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
-                            ["Boost"] = "Super Luck",
-                            ["HitPlayers"] = {
-                                [1] = Player
-                            }
-                        }
-                    }
-                    
-                    Rep.Remotes.SkillCast:FireServer(unpack(args))
-                end
-
-                wait(1)
-            end
-        end)
-    end
 end)
 
 local Reset = PageMisc.AddButton("Reset Character", function()
