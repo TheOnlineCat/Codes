@@ -320,8 +320,8 @@ local function getQuestMobs(quest)
         enemyType = {"Thunderclap"}
     elseif quest == "Troubles from another timeline" then 
         enemyType = {"Roku"}
-    elseif quest == "Troubles from another timeline" then 
-        enemyType = {"Roku"}
+    elseif quest == "From another world" then 
+        enemyType = {"Otherworlders"}
     end
     return(enemyType)
 end
