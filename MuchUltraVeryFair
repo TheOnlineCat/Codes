@@ -903,7 +903,7 @@ local IgnoreUpgraded = PageUpgrade.AddToggle(
 
 local PageAutoRoll = MainUI.AddPage("Auto Config", true)
 
-local autoLuck = PageMisc.AddToggle("Auto Cast Ultra & Super Luck", false, function(value)
+local autoLuck = PageAutoRoll.AddToggle("Auto Cast Ultra & Super Luck", false, function(value)
     RollSettings.Luck = value
     Save("RollSettings", RollSettings)
     if value then
