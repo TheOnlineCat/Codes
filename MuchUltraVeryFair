@@ -749,7 +749,8 @@ local QuestSelect = PageFarm.AddDropdown("Quest Select", {
     "Trouble in the backrooms",
     "Something is in the sewers",
     "Cooking some crossovers",
-    "Troubles from another timeline"
+    "Troubles from another timeline",
+	"From another world"
     }, function(value)
         FarmSettings.SelectedQuest = value
         Save("FarmSettings", FarmSettings)
