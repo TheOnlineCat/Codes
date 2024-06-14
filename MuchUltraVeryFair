@@ -71,10 +71,8 @@ local function Load(File)
     end
 end
 
-local getUserData = nil
-for i, v in next, getconnections(Player:WaitForChild("PlayerGui"):WaitForChild("MainClient"):WaitForChild("Equipped"):WaitForChild("Relic"):WaitForChild("enhance").MouseButton1Click) do
-    getUserData = function() return getupvalue(v.Function, 4) end
-end
+getUserData = function() return getupvalue(getconnections(Player:WaitForChild("PlayerGui"):WaitForChild("MainClient"):WaitForChild("Equipped"):WaitForChild("Relic"):WaitForChild("enhance").MouseButton1Click)[1].Function, 4) end
+
 
 getgenv().AbilityDict = {}
 local RerollPath = Player.PlayerGui.Reroll
@@ -907,18 +905,17 @@ local autoLuck = PageAutoRoll.AddToggle("Auto Cast Ultra & Super Luck", RollSett
     RollSettings.Luck = value
     Save("RollSettings", RollSettings)
     if value then
-        spawn(function()
+        spawn(pcall(function()
             while RollSettings.Luck do
-
-                repeat
-                    wait()
-                until getUserData and getUserData()
 
                 local data = getUserData()
                 -- if data.Ability ~= "Luck Manipulation" then
                 --     wait(1)
                 --     continue
                 -- end
+                if(data == nil) then
+                    continue
+                end
 
                 if os.time() > data.LastSelfGamble then
                     local args = {
@@ -949,7 +946,7 @@ local autoLuck = PageAutoRoll.AddToggle("Auto Cast Ultra & Super Luck", RollSett
 
                 wait(3)
             end
-        end)
+        end))
     end
 end)
 
