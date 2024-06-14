@@ -29,7 +29,8 @@ getgenv().RollSettings = {
     Amount = 25,
     Threshold = 15,
     Store = false,
-    Hide = false
+    Hide = false,
+    Luck = false
 }
 
 getgenv().UpgradeSettings = {
@@ -322,6 +323,8 @@ local function getQuestMobs(quest)
         enemyType = {"Roku"}
     elseif quest == "From another world" then 
         enemyType = {"Otherworlders"}
+    elseif quest == "Ultra Fair" then 
+        enemyType = {"God"}
     end
     return(enemyType)
 end
@@ -336,6 +339,7 @@ local function getOffsetVector(enemy)
 end
 
 local BossFight = false
+
 
 
 local function farm()
@@ -750,7 +754,8 @@ local QuestSelect = PageFarm.AddDropdown("Quest Select", {
     "Something is in the sewers",
     "Cooking some crossovers",
     "Troubles from another timeline",
-	"From another world"
+	"From another world",
+    "Ultra Fair"
     }, function(value)
         FarmSettings.SelectedQuest = value
         Save("FarmSettings", FarmSettings)
@@ -928,6 +933,50 @@ local PageMisc = MainUI.AddPage("Misc", false)
 
 local AttackBarrier = PageMisc.AddToggle("Damage Arlo Boss Barrier", false, function(value)
     Toggles.BreakBarrier = value
+end)
+
+local LuckySpam = PageMisc.AddToggle("Auto Cast Ultra & Super Luck", false, function(value)
+    RollSettings.Luck = value
+    Save("RollSettings", RollSettings)
+    if value then
+        spawn(function()
+            while RollSettings.Luck do
+                if getUserData().Ability ~= "Luck Manipulation" then
+                    wait(1)
+                    continue
+                end
+
+                if os.time() > getUserData().LastSelfGamble then
+                    local args = {
+                        [1] = "Self Gamble",
+                        [2] = {
+                            ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
+                            ["Boost"] = "Ultra Luck"
+                        }
+                    }
+                    
+                    Rep.Remotes.SkillCast:FireServer(unpack(args))
+                end
+                
+                if os.time() > getUserData().LastGroupGamble then
+                    local args = {
+                        [1] = "Group Gamble",
+                        [2] = {
+                            ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
+                            ["Boost"] = "Super Luck",
+                            ["HitPlayers"] = {
+                                [1] = Player
+                            }
+                        }
+                    }
+                    
+                    Rep.Remotes.SkillCast:FireServer(unpack(args))
+                end
+
+                wait(1)
+            end
+        end)
+    end
 end)
 
 local Reset = PageMisc.AddButton("Reset Character", function()
