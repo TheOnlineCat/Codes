@@ -909,12 +909,13 @@ local autoLuck = PageAutoRoll.AddToggle("Auto Cast Ultra & Super Luck", false, f
     if value then
         spawn(function()
             while RollSettings.Luck do
-                if getUserData().Ability ~= "Luck Manipulation" then
+                local data = getUserData()
+                if data.Ability ~= "Luck Manipulation" then
                     wait(1)
                     continue
                 end
 
-                if os.time() > getUserData().LastSelfGamble then
+                if os.time() > data.LastSelfGamble then
                     local args = {
                         [1] = "Self Gamble",
                         [2] = {
@@ -926,7 +927,7 @@ local autoLuck = PageAutoRoll.AddToggle("Auto Cast Ultra & Super Luck", false, f
                     Rep.Remotes.SkillCast:FireServer(unpack(args))
                 end
                 
-                if os.time() > getUserData().LastGroupGamble then
+                if os.time() > data.LastGroupGamble then
                     local args = {
                         [1] = "Group Gamble",
                         [2] = {
