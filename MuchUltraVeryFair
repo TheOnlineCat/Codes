@@ -72,7 +72,7 @@ local function Load(File)
 end
 
 local getUserData = nil
-for i, v in next, getconnections(Player.PlayerGui.MainClient.Equipped.Relic.enhance.MouseButton1Click) do
+for i, v in next, getconnections(Player:WaitForChild("PlayerGui"):WaitForChild("MainClient"):WaitForChild("Equipped"):WaitForChild("Relic"):WaitForChild("enhance").MouseButton1Click) do
     getUserData = function() return getupvalue(v.Function, 4) end
 end
 
@@ -903,17 +903,22 @@ local IgnoreUpgraded = PageUpgrade.AddToggle(
 
 local PageAutoRoll = MainUI.AddPage("Auto Config", true)
 
-local autoLuck = PageAutoRoll.AddToggle("Auto Cast Ultra & Super Luck", false, function(value)
+local autoLuck = PageAutoRoll.AddToggle("Auto Cast Ultra & Super Luck", RollSettings.Luck, function(value)
     RollSettings.Luck = value
     Save("RollSettings", RollSettings)
     if value then
         spawn(function()
             while RollSettings.Luck do
+
+                repeat
+                    wait()
+                until getUserData()
+
                 local data = getUserData()
-                if data.Ability ~= "Luck Manipulation" then
-                    wait(1)
-                    continue
-                end
+                -- if data.Ability ~= "Luck Manipulation" then
+                --     wait(1)
+                --     continue
+                -- end
 
                 if os.time() > data.LastSelfGamble then
                     local args = {
@@ -942,7 +947,7 @@ local autoLuck = PageAutoRoll.AddToggle("Auto Cast Ultra & Super Luck", false, f
                     Rep.Remotes.SkillCast:FireServer(unpack(args))
                 end
 
-                wait(1)
+                wait(3)
             end
         end)
     end
