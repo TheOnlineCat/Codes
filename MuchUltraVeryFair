@@ -912,7 +912,7 @@ local autoLuck = PageAutoRoll.AddToggle("Auto Cast Ultra & Super Luck", RollSett
 
                 repeat
                     wait()
-                until getUserData()
+                until getUserData and getUserData()
 
                 local data = getUserData()
                 -- if data.Ability ~= "Luck Manipulation" then
