@@ -768,8 +768,8 @@ end)
 
 
 
-checkCurrentMods()
-autoLuck()
+--checkCurrentMods()
+--autoLuck()
 farm()
 
 
