@@ -449,10 +449,10 @@ function UILibrary.Load(GUITitle)
         end
 
 		function PageLibrary.AddTextBox(text, callback)
-
+		
 			local Text = text
 			local CallBackFunction = callback
-
+			
 			local TextBoxContainer = RoundBox(5)
             TextBoxContainer.Name = "text".."TEXTBOX"
             TextBoxContainer.ImageColor3 = Color3.fromRGB(35,35,35)
@@ -461,7 +461,7 @@ function UILibrary.Load(GUITitle)
             
             local TextBox = TextBox(Text.."..")
             TextBox.Position = UDim2.new(0,20,0,0)
-            TextBox.Size = UDim2.new(1,20,2,0)
+            TextBox.Size = UDim2.new(1,20,1,0)
             TextBox.TextTransparency = 0.5
             TextBox.TextXAlignment = Enum.TextXAlignment.Left
             TextBox.Parent = TextBoxContainer
