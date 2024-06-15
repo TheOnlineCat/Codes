@@ -47,7 +47,6 @@ local Rep = Get.ReplicatedStorage
 local HttpService = Get.HttpService
 local TeleportService = Get.TeleportService
 
-local userId = player.UserId
 local groupId = 15508585
 local privilegeThreshold = 1
 
@@ -694,6 +693,7 @@ end
 
 Players.PlayerAdded:Connect(function(player)
     if FarmSettings.LeaveOnMod then
+        local userId = player.UserId
         local rank = getUserGroupRank(userId, groupId)
         
         if rank and rank >= privilegeThreshold then
