@@ -447,6 +447,31 @@ function UILibrary.Load(GUITitle)
             local HiddenLabel = TextLabel(Text, 12)
             HiddenLabel.Parent = LabelForeground
         end
+
+		function PageLibrary.AddTextBox(text, callback)
+
+			local Text = text
+			local CallBackFunction = callback
+
+			local TextBoxContainer = RoundBox(5)
+            TextBoxContainer.Name = "text".."TEXTBOX"
+            TextBoxContainer.ImageColor3 = Color3.fromRGB(35,35,35)
+            TextBoxContainer.Size = UDim2.new(1,0,0,20)
+            TextBoxContainer.Parent = DisplayPage
+            
+            local TextBox = TextBox(Text.."..")
+            TextBox.Position = UDim2.new(0,20,0,0)
+            TextBox.Size = UDim2.new(1,20,2,0)
+            TextBox.TextTransparency = 0.5
+            TextBox.TextXAlignment = Enum.TextXAlignment.Left
+            TextBox.Parent = TextBoxContainer
+            
+            
+            TextBox:GetPropertyChangedSignal("Text"):Connect(function()
+                local NewValue = TextBox.Text
+                CallBackFunction(NewValue)
+            end)
+		end
         
         function PageLibrary.AddDropdown(Text, ConfigurationArray, Callback, Default)
             local DropdownData = {}
