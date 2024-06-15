@@ -956,7 +956,7 @@ local AutoTab = Window:CreateTab("Auto Config", 4483362458)
 
 AutoTab:CreateSection("Set Minimum Levels (Overrides Global, 0 is OFF)",false)
 
-for abil in AbilityList do
+for i, abil in AbilityList do
     table.insert({}, (
 		AutoTab:CreateSlider({
 			Name = abil,
