@@ -616,6 +616,53 @@ local function massUpgrade(type, ignoreUpgraded, threshold)
 end
 
 
+local function autoLuck()
+    spawn(pcall(function()
+        while RollSettings.Luck do
+
+            print("TEST!!!!!!!!!!!")
+
+            local data = getUserData()
+            -- if data.Ability ~= "Luck Manipulation" then
+            --     wait(1)
+            --     continue
+            -- end
+            if(data == nil) then
+                continue
+            end
+
+            if data.LastSelfGamble == nil or os.time() > data.LastSelfGamble then
+                local args = {
+                    [1] = "Self Gamble",
+                    [2] = {
+                        ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
+                        ["Boost"] = "Ultra Lucky"
+                    }
+                }
+                
+                Rep.Remotes.SkillCast:FireServer(unpack(args))
+            end
+            
+            if data.LastGroupGamble == nil or os.time() > data.LastGroupGamble then
+                local args = {
+                    [1] = "Group Gamble",
+                    [2] = {
+                        ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
+                        ["Boost"] = "Super Lucky",
+                        ["HitPlayers"] = {
+                            [1] = Player
+                        }
+                    }
+                }
+                
+                Rep.Remotes.SkillCast:FireServer(unpack(args))
+            end
+
+            wait(3)
+        end
+    end))
+end
+
 
 local function getServerList(placeId)
     local servers = {}
@@ -648,6 +695,18 @@ local function serverHop()
         TeleportService:TeleportToPlaceInstance(gameId, newServerId, Player)
     else
         Player:Kick("No servers found.")
+    end
+end
+
+local function checkCurrentMods()
+    if FarmSettings.LeaveOnMod then
+        for index, player in Players:GetChildren() do
+            local rank = getUserGroupRank(player.userId, groupId)
+            if rank and rank >= privilegeThreshold then
+                print("Privileged member is here: " .. player.Name .. " with rank: " .. rank)
+                serverHop()
+            end
+        end
     end
 end
 
@@ -705,6 +764,10 @@ Players.PlayerAdded:Connect(function(player)
 end)
 
 
+
+
+checkCurrentMods()
+autoLuck()
 farm()
 
 
@@ -906,50 +969,7 @@ local autoLuck = PageAutoRoll.AddToggle("Auto Cast Ultra & Super Luck", RollSett
     RollSettings.Luck = value
     Save("RollSettings", RollSettings)
     if value then
-        spawn(pcall(function()
-            while RollSettings.Luck do
-
-                print("TEST!!!!!!!!!!!")
-                
-                local data = getUserData()
-                -- if data.Ability ~= "Luck Manipulation" then
-                --     wait(1)
-                --     continue
-                -- end
-                if(data == nil) then
-                    continue
-                end
-
-                if data.LastSelfGamble == nil or os.time() > data.LastSelfGamble then
-                    local args = {
-                        [1] = "Self Gamble",
-                        [2] = {
-                            ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
-                            ["Boost"] = "Ultra Lucky"
-                        }
-                    }
-                    
-                    Rep.Remotes.SkillCast:FireServer(unpack(args))
-                end
-                
-                if data.LastGroupGamble == nil or os.time() > data.LastGroupGamble then
-                    local args = {
-                        [1] = "Group Gamble",
-                        [2] = {
-                            ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
-                            ["Boost"] = "Super Lucky",
-                            ["HitPlayers"] = {
-                                [1] = Player
-                            }
-                        }
-                    }
-                    
-                    Rep.Remotes.SkillCast:FireServer(unpack(args))
-                end
-
-                wait(3)
-            end
-        end))
+        autoLuck()
     end
 end)
 
@@ -996,13 +1016,5 @@ end)
 local autoRejoin = PageMisc.AddToggle("Auto Server Hop on Moderator Join", FarmSettings.LeaveOnMod, function(value)
     FarmSettings.LeaveOnMod = value
     Save("FarmSettings", FarmSettings)
-    if value then
-        for index, player in Players:GetChildren() do
-            local rank = getUserGroupRank(player.userId, groupId)
-            if rank and rank >= privilegeThreshold then
-                print("Privileged member is here: " .. player.Name .. " with rank: " .. rank)
-                serverHop()
-            end
-        end
-    end
+    checkCurrentMods()
 end)
