@@ -63,6 +63,7 @@ end
 local function Load(File)
     if not (readfile and isfile) then
         print("Loading Not Supported")
+        --File Reading Not supported
         return
     end
     if isfile("UU_"..File..".txt") then
@@ -123,8 +124,6 @@ end)
 hookfunction(Old.addparticle, function()
     return
 end)
-
-
 
 local MobList = {}
 for i, v in pairs(require(Workspace.EnemyStats)) do
@@ -226,9 +225,7 @@ local function Punch(enemy)
         CurrentEnemy = enemy
         PunchCounter = 0
     end
-    --some script i edited for attack (from Anyx)
     if PunchCounter >= 5 then
-        -- wait(1)
         PunchCounter = 0
     end
 
@@ -250,6 +247,14 @@ local function ArbiterHit(enemy)
     Rep.Damage:FireServer(unpack(args))
 end
 
+-- local function ArbiterUlt(Enemy)
+--     local args = {
+--         [1] = "Dark Blade",
+--         [2] = Enemy:FindFirstChildWhichIsA("Humanoid"),
+--         [4] = {["Ultimate"] = true}
+--     }
+--     Rep.Damage:FireServer(unpack(args))
+-- end
 
 local function EnergyBlade(enemy)
     local args = {
@@ -599,6 +604,51 @@ local function massUpgrade(type, ignoreUpgraded, threshold)
 end
 
 
+local function autoLuck()
+    spawn(pcall(function()
+        while RollSettings.Luck do
+
+            print("TEST!!!!!!!!!!!")
+
+            local data = getUserData()
+
+            if(data == nil) then
+                continue
+            end
+
+            if data.LastSelfGamble == nil or os.time() > data.LastSelfGamble then
+                local args = {
+                    [1] = "Self Gamble",
+                    [2] = {
+                        ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
+                        ["Boost"] = "Ultra Lucky"
+                    }
+                }
+                
+                Rep.Remotes.SkillCast:FireServer(unpack(args))
+            end
+            
+            if data.LastGroupGamble == nil or os.time() > data.LastGroupGamble then
+                local args = {
+                    [1] = "Group Gamble",
+                    [2] = {
+                        ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
+                        ["Boost"] = "Super Lucky",
+                        ["HitPlayers"] = {
+                            [1] = Player
+                        }
+                    }
+                }
+                
+                Rep.Remotes.SkillCast:FireServer(unpack(args))
+            end
+
+            wait(3)
+        end
+    end))
+end
+
+
 local function getServerList(placeId)
     local servers = {}
     local cursor = ""
@@ -651,11 +701,13 @@ end
 local function checkCurrentMods()
     if FarmSettings.LeaveOnMod then
         for index, player in Players:GetChildren() do
-            local rank = getUserGroupRank(player.userId, groupId)
-            if rank and rank >= privilegeThreshold then
-                print("Privileged member is here: " .. player.Name .. " with rank: " .. rank)
-                serverHop()
-            end
+            spawn(function()
+                local rank = getUserGroupRank(player.userId, groupId)
+                if rank and rank >= privilegeThreshold then
+                    print("Privileged member is here: " .. player.Name .. " with rank: " .. rank)
+                    serverHop()
+                end
+            end)
         end
     end
 end
@@ -704,11 +756,12 @@ end)
 
 
 checkCurrentMods()
+autoLuck()
 farm()
 
 
 
-print("Injected")
+
 
 
 local UILibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/TheOnlineCat/Codes/main/Twink's%20UILib%20Modified", true))()
@@ -904,49 +957,8 @@ local PageAutoRoll = MainUI.AddPage("Auto Config", true)
 local autoLuck = PageAutoRoll.AddToggle("Auto Cast Ultra & Super Luck", RollSettings.Luck, function(value)
     RollSettings.Luck = value
     Save("RollSettings", RollSettings)
-    print("GAMING!!!")
     if value then
-        spawn(pcall(function()
-            while RollSettings.Luck do
-    
-                print("TEST!!!!!!!!!!!")
-    
-                local data = getUserData()
-
-                if(data == nil) then
-                    continue
-                end
-    
-                if data.LastSelfGamble == nil or os.time() > data.LastSelfGamble then
-                    local args = {
-                        [1] = "Self Gamble",
-                        [2] = {
-                            ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
-                            ["Boost"] = "Ultra Lucky"
-                        }
-                    }
-                    
-                    Rep.Remotes.SkillCast:FireServer(unpack(args))
-                end
-                
-                if data.LastGroupGamble == nil or os.time() > data.LastGroupGamble then
-                    local args = {
-                        [1] = "Group Gamble",
-                        [2] = {
-                            ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
-                            ["Boost"] = "Super Lucky",
-                            ["HitPlayers"] = {
-                                [1] = Player
-                            }
-                        }
-                    }
-                    
-                    Rep.Remotes.SkillCast:FireServer(unpack(args))
-                end
-    
-                wait(3)
-            end
-        end))
+        autoLuck()
     end
 end)
 
@@ -968,7 +980,6 @@ end
 
 
 local PageMisc = MainUI.AddPage("Misc", false)
-
 
 local AttackBarrier = PageMisc.AddToggle("Damage Arlo Boss Barrier", false, function(value)
     Toggles.BreakBarrier = value
