@@ -769,7 +769,7 @@ end)
 
 
 --checkCurrentMods()
---autoLuck()
+autoLuck()
 farm()
 
 
