@@ -510,7 +510,7 @@ game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(funct
     if RollSettings.Hide then
         Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 1
         Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = false
-        Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.visible = false
+        Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = false
     end
 
     if(not Toggles.AutoRoll) then
@@ -531,7 +531,7 @@ game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(funct
 
                         Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 0.5
                         Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = true
-                        Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.visible = true
+                        Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = true
 
                         if RollSettings.Store then
                             ability.accept()
