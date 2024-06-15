@@ -726,57 +726,6 @@ local function checkCurrentMods()
 end
 
 
-spawn(function()
-	while wait() do
-		game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(character)
-            local Players = Get.Players
-            local Player = Players.LocalPlayer
-            attack = nil
-		end)
-		game:GetService("Players").LocalPlayer.Character:WaitForChild("Humanoid").Died()
-	end
-end)
-
-
-RunService.Stepped:Connect(
-   function()
-       if Toggles.Farm then
-           for i, v in pairs(Player.Character:GetChildren()) do
-               if v:IsA("BasePart") then
-                   v.CanCollide = false
-               end
-           end
-       end
-   end
-)
-
-
-
-Players.PlayerAdded:Connect(function(player)
-    if FarmSettings.LeaveOnMod then
-        local userId = player.UserId
-        local rank = getUserGroupRank(userId, groupId)
-        
-        if rank and rank >= privilegeThreshold then
-            print("Privileged member joined: " .. player.Name .. " with rank: " .. rank)
-            serverHop()
-        end
-    end
-    
-end)
-
-
-
-
---checkCurrentMods()
-autoLuck()
-farm()
-
-
-
-
-
-
 local UILibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/TheOnlineCat/Codes/main/Twink's%20UILib%20Modified", true))()
 
 local MainUI = UILibrary.Load("Much Ultra, Very Fair")
@@ -1020,3 +969,50 @@ local autoRejoin = PageMisc.AddToggle("Auto Server Hop on Moderator Join", FarmS
     Save("FarmSettings", FarmSettings)
     checkCurrentMods()
 end)
+
+
+spawn(function()
+	while wait() do
+		game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(character)
+            local Players = Get.Players
+            local Player = Players.LocalPlayer
+            attack = nil
+		end)
+		game:GetService("Players").LocalPlayer.Character:WaitForChild("Humanoid").Died()
+	end
+end)
+
+
+RunService.Stepped:Connect(
+   function()
+       if Toggles.Farm then
+           for i, v in pairs(Player.Character:GetChildren()) do
+               if v:IsA("BasePart") then
+                   v.CanCollide = false
+               end
+           end
+       end
+   end
+)
+
+
+
+Players.PlayerAdded:Connect(function(player)
+    if FarmSettings.LeaveOnMod then
+        local userId = player.UserId
+        local rank = getUserGroupRank(userId, groupId)
+        
+        if rank and rank >= privilegeThreshold then
+            print("Privileged member joined: " .. player.Name .. " with rank: " .. rank)
+            serverHop()
+        end
+    end
+    
+end)
+
+
+
+
+checkCurrentMods()
+autoLuck()
+farm()
