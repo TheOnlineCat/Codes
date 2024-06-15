@@ -769,7 +769,7 @@ end)
 
 
 checkCurrentMods()
-autoLuck()
+-- autoLuck()
 farm()
 
 
@@ -970,7 +970,8 @@ local PageAutoRoll = MainUI.AddPage("Auto Config", true)
 local autoLuck = PageAutoRoll.AddToggle("Auto Cast Ultra & Super Luck", RollSettings.Luck, function(value)
     RollSettings.Luck = value
     Save("RollSettings", RollSettings)
-    if value then
+    print("GAMING!!!")
+    if RollSettings.Luck then
         autoLuck()
     end
 end)
