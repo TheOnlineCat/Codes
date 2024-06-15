@@ -1,43 +1,7 @@
---thanks to DekuDimz and Anyx, used some of their script for some help 
+local ArrayField = loadstring(game:HttpGet('https://raw.githubusercontent.com/UI-Interface/ArrayField/main/Source.lua'))()
+
+
 getgenv().Get = setmetatable({}, {__index = function(Self, Idx) return game:GetService(Idx) end})
-
-getgenv().Toggles = {
-    Farm = false,
-    KillAura = false,
-    MobAura = false,
-    AutoRoll = false,
-    FarmBoss = false,
-    BreakBarrier = false
-}
-
-getgenv().FarmSettings = {
-    AuraDistance = 6,
-    FarmDistance = 3,
-    KillPlayers = true,
-    SelectedQuest = nil,
-    LeaveOnMod = true
-}
-
-getgenv().AuraSettings = {
-    PunchSpeed = 0.15,
-    KillDistance = 12,
-    Mode = "Punch (Lowest 150ms)"
-}
-
-
-getgenv().RollSettings = {
-    Amount = 25,
-    Threshold = 15,
-    Store = false,
-    Hide = false,
-    Luck = false
-}
-
-getgenv().UpgradeSettings = {
-    Threshold = 5,
-    IgnoreUpgraded = false
-}
-
 
 local Players = Get.Players
 local Player = Players.LocalPlayer
@@ -51,29 +15,6 @@ local groupId = 15508585
 local privilegeThreshold = 150
 
 
-local function Save(File, Table)
-    if (writefile) then
-        local json = HttpService:JSONEncode(Table)
-        writefile("UU_"..File..".txt", json)
-    else
-        print("Saving Not Supported")
-    end
-end
-
-local function Load(File)
-    if not (readfile and isfile) then
-        print("Loading Not Supported")
-        --File Reading Not supported
-        return
-    end
-    if isfile("UU_"..File..".txt") then
-        print("Found File")
-        Table = HttpService:JSONDecode(readfile("UU_"..File..".txt"))
-        print("Settings Loaded")
-        return(Table)
-    end
-end
-
 getUserData = function() return getupvalue(getconnections(Player.PlayerGui.MainClient.Equipped.Relic.enhance.MouseButton1Click)[1].Function, 4) end
 
 
@@ -82,20 +23,12 @@ local RerollPath = Player.PlayerGui.Reroll
 local AbilityList = {}
 
 
-AbilityDict = Load("AbilityFilter")
 for i, v in pairs(RerollPath.Prompt.Prompt.ScrollingFrame:GetChildren()) do
     if v:IsA("TextButton") then
         table.insert(AbilityList, v.Name)
-        if not (AbilityDict[v.Name]) then
-            AbilityDict[v.Name] = 0
-        end
     end
 end
 
-AuraSettings = Load("AuraSettings")
-RollSettings = Load("RollSettings")
-FarmSettings = Load("FarmSettings")
-UpgradeSettings = Load("UpgradeSettings")
 
 local VirtualUser = game:service'VirtualUser'
 game:service'Players'.LocalPlayer.Idled:connect(function()
@@ -154,15 +87,15 @@ local function getNearestMobs(Type)
     local Target
     for i, v in ipairs(Workspace:GetChildren()) do
         if v:IsA("Model")  then
-            if Toggles.Farm then
+            if ArrayField.Flags.farm then
                 if not(table.find(Type, v.Name)) then
                     continue
                 end
-            elseif Toggles.MobAura then
+            elseif ArrayField.Flags.mobAura then
                 if not(table.find(MobList, v.Name)) then
                     continue
                 end
-            elseif Toggles.KillAura then
+            elseif ArrayField.Flags.killAura then
                 if not(v:FindFirstChildWhichIsA("Humanoid")) or v.Name == Player.Name then
                     continue
                 end
@@ -231,7 +164,7 @@ local function Punch(enemy)
 
 
     if attack then
-        attack(Vector3.new(AuraSettings.KillDistance, AuraSettings.KillDistance, AuraSettings.KillDistance),CFrame.new(0,0,0),6,nil)
+        attack(Vector3.new(ArrayField.Flags.killDistance, ArrayField.Flags.killDistance, ArrayField.Flags.killDistance),CFrame.new(0,0,0),6,nil)
     else
         AttackFuncGet()
     end
@@ -260,7 +193,7 @@ local function EnergyBlade(enemy)
     local args = {
         [1] = "DualSwordHeavy",
         [2] = enemy:FindFirstChildWhichIsA("Humanoid"),
-        [3] = Player.Character.Cancellations.Value,
+        [3] = Player.Character.Cancellations.CurrentValue,
         [4] = {
             [1] = enemy:FindFirstChildWhichIsA("Humanoid")
         }
@@ -271,15 +204,15 @@ end
 
 
 local function hit(enemy)
-    if AuraSettings.Mode == "Punch" then
+    if ArrayField.Flags.auraMode == "Punch" then
         Punch(enemy)
-        wait(AuraSettings.PunchSpeed)
-    elseif AuraSettings.Mode == "Dark Blade (Arbiter Only)" then
+        wait(ArrayField.Flags.hitDelay)
+    elseif ArrayField.Flags.auraMode == "Dark Blade (Arbiter Only)" then
         ArbiterHit(enemy)
-        wait(AuraSettings.PunchSpeed)
-    elseif AuraSettings.Mode == "Energy Blade" then
+        wait(ArrayField.Flags.hitDelay)
+    elseif ArrayField.Flags..auraMode == "Energy Blade" then
         EnergyBlade(enemy)
-        wait(AuraSettings.PunchSpeed)
+        wait(ArrayField.Flags.hitDelay)
     end
 end
 
@@ -322,7 +255,7 @@ local function getOffsetVector(enemy)
     local Vector = Player.Character.HumanoidRootPart.Position - enemy:GetModelCFrame().Position
     local Distance = Vector.Magnitude
     local Normal = Vector3.new(Vector.x/Distance, Vector.y/Distance, Vector.z/Distance)
-    local Offset = Normal * FarmSettings.FarmDistance
+    local Offset = Normal * ArrayField.Flags.farmDistance
     local NewPosition = enemy:GetModelCFrame().Position + Offset
     return NewPosition
 end
@@ -336,11 +269,11 @@ local function farm()
         local killedBoss = true;
         while wait() do
             if not BossFight then
-                if Toggles.Farm then
+                if ArrayField.Flags.farm then
                     
                     pcall(function()
                         if not Player.PlayerGui.MainClient.Quest.visible then
-                            quest(FarmSettings.SelectedQuest)
+                            quest(ArrayField.Flags.quest)
                         else
                             local questCount = Player.PlayerGui.MainClient.Quest.Folder.Objective.progress.text:split("/")
                             if questCount[1] == questCount[2] then
@@ -353,7 +286,7 @@ local function farm()
                             activateAbility()
                         end
 
-                        local enemyType = getQuestMobs(FarmSettings.SelectedQuest)
+                        local enemyType = getQuestMobs(ArrayField.Flags.quest)
                         local enemy = getNearestMobs(enemyType)
                         local currentDistance = getDistanceTo(enemy)
 
@@ -361,16 +294,16 @@ local function farm()
                         local enemyBarrier = false
 
                         obstacle = getNearestObstacles(false)
-                        if obstacle.Name ~= "Barrier" and not (getDistanceTo(obstacle) < AuraSettings.KillDistance) then
+                        if obstacle.Name ~= "Barrier" and not (getDistanceTo(obstacle) < ArrayField.Flags.killDistance) then
                             enemyBarrier = false
                         end
-                        if currentDistance < FarmSettings.AuraDistance then
+                        if currentDistance < ArrayField.Flags.farmAuraDistance then
                             local enemyHp = enemy:FindFirstChildWhichIsA("Humanoid").Health
                             hit(enemy)
                             if (enemyHp - enemy:FindFirstChildWhichIsA("Humanoid").Health) == 0 then
                                 enemyBarrier = true
                             end
-                        elseif FarmSettings.KillPlayers and obstacle and getDistanceTo(obstacle) < AuraSettings.KillDistance then
+                        elseif ArrayField.Flags.killPlayers and obstacle and getDistanceTo(obstacle) < ArrayField.Flags.killDistance then
                             hit(obstacle)
                         else
                             if currentDistance >= 300 then
@@ -380,17 +313,17 @@ local function farm()
                             end
                             killedBoss = true
                         end
-                        if obstacle.Name == "Barrier" and currentDistance < FarmSettings.AuraDistance and enemyBarrier then
+                        if obstacle.Name == "Barrier" and currentDistance < ArrayField.Flags.farmAuraDistance and enemyBarrier then
                             hit(obstacle)
                         end
                     end
                     )
 
-                elseif (Toggles.KillAura or Toggles.MobAura) and not Toggles.Farm and killedBoss then
+                elseif (ArrayField.Flags.killAura or ArrayField.Flags.mobAura) and not ArrayField.Flags.farm and killedBoss then
 
                     pcall(function()
                         local enemy = getNearestMobs()
-                        if getDistanceTo(enemy) < AuraSettings.KillDistance then
+                        if getDistanceTo(enemy) < ArrayField.Flags.killDistance then
                             hit(enemy)
                         end
                     end)
@@ -428,7 +361,7 @@ end
 
 local function BossFarm()
     spawn(function()
-        while wait() and Toggles.FarmBoss do
+        while wait() and ArrayField.Flags.bossKill do
             pcall(function()
                 if Player.PlayerGui.Boss.Enabled == true then
                     BossFight = true
@@ -439,21 +372,21 @@ local function BossFarm()
                     end
                     
                     pcall(function()
-                        while Boss.Humanoid.Health > 0 and Toggles.FarmBoss and Boss do
+                        while Boss.Humanoid.Health > 0 and ArrayField.Flags.bossKill and Boss do
                             Boss = LocateBoss()
                             if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
                                 activateAbility()
                             end
 
-                            if getDistanceTo(Boss)  < AuraSettings.KillDistance then
+                            if getDistanceTo(Boss)  < ArrayField.Flags.killDistance then
                                 hit(Boss)
                             else 
                                 Player.Character.Humanoid:MoveTo(getOffsetVector(Boss))
                                 wait(0.1)
                             end
-                            if Toggles.BreakBarrier then
+                            if ArrayField.Flags.damageBossBarrier then
                                 local Barrier = getNearestObstacles(true)
-                                if getDistanceTo(Barrier) < AuraSettings.KillDistance  then
+                                if getDistanceTo(Barrier) < ArrayField.Flags.killDistance  then
                                     hit(Barrier)
                                 end
                             end
@@ -506,7 +439,13 @@ end
 
 local count = 0
 game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(function(child)
-    if(not Toggles.AutoRoll) then
+    if ArrayField.Flags.hideRollGui then
+        Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 1
+        Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = false
+        Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.visible = false
+    end
+
+    if(not ArrayField.Flags.autoRoll) then
         return
     end
 
@@ -519,12 +458,23 @@ game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(funct
                 local rolledAbilities = getRolledAbilities()
                 local found = false
                 for _i, ability in rolledAbilities do     
-                    if (ability.potential >= RollSettings.Threshold) or AbilityDict[ability.name] == nil or (ability.potential >= AbilityDict[ability.name] and AbilityDict[ability.name] ~= 0) then
+                    if (
+						(ability.potential >= ArrayField.Flags.globalMinLevel) or 
+						ArrayField.Flags["ability_"..ability.name] == nil or 
+						(ability.potential >= ArrayField.Flags["ability_"..ability.name] and ArrayField.Flags["ability_"..ability.name] ~= 0)
+					) then
+
                         found = true
-                        if RollSettings.Store then
+
+                        Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 0.5
+                        Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = true
+                        Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.visible = true
+
+                        if ArrayField.Flags.storeAbility then
                             ability.accept()
                         else
-                            Toggles.AutoRoll = false
+                            ArrayField.Flags.autoRoll = false
+							-- AutoRollToggle:Set(false)
                             return
                         end
                     end
@@ -537,14 +487,14 @@ game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(funct
                 repeat
                 clickEndRoll()
                 wait(0.3)
-                until not RerollPath.Rerolls.visible or not Toggles.AutoRoll
+                until not RerollPath.Rerolls.visible or not ArrayField.Flags.autoRoll
 
                 print("rolling again")
         
                 repeat
                     Rep.Reroll:InvokeServer(nil, nil, true)
                     wait(2)
-                until RerollPath.Rerolls.visible or not Toggles.AutoRoll
+                until RerollPath.Rerolls.visible or not ArrayField.Flags.autoRoll
             end)
         end
     end
@@ -606,9 +556,7 @@ end
 
 local function autoLuck()
     spawn(pcall(function()
-        while RollSettings.Luck do
-
-            print("TEST!!!!!!!!!!!")
+        while ArrayField.Flags.autoLuck do
 
             local data = getUserData()
 
@@ -699,7 +647,7 @@ local function getUserGroupRank(userId, groupId)
 end
 
 local function checkCurrentMods()
-    if FarmSettings.LeaveOnMod then
+    if ArrayField.Flags.leaveOnMod then
         for index, player in Players:GetChildren() do
             spawn(function()
                 local rank = getUserGroupRank(player.userId, groupId)
@@ -727,7 +675,7 @@ end)
 
 RunService.Stepped:Connect(
    function()
-       if Toggles.Farm then
+       if ArrayField.Flags.farm then
            for i, v in pairs(Player.Character:GetChildren()) do
                if v:IsA("BasePart") then
                    v.CanCollide = false
@@ -740,7 +688,7 @@ RunService.Stepped:Connect(
 
 
 Players.PlayerAdded:Connect(function(player)
-    if FarmSettings.LeaveOnMod then
+    if ArrayField.Flags.leaveOnMod then
         local userId = player.UserId
         local rank = getUserGroupRank(userId, groupId)
         
@@ -755,246 +703,346 @@ end)
 
 
 
-spawn(checkCurrentMods)
-spawn(autoLuck)
+-- spawn(checkCurrentMods)
+-- spawn(autoLuck)
 farm()
 
 
 
+local Window = ArrayField:CreateWindow({
+	Name = "Much Ultra, Very Fair", 
+	ConfigurationSaving = {
+		Enabled = true,
+		FolderName = "MUVF", -- Create a custom folder for your hub/game
+		FileName = "Ultra Unfair"
+	 },
+})
 
 
+local FarmTab = Window:CreateTab("Farm", 4483362458)
 
-local UILibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/TheOnlineCat/Codes/main/Twink's%20UILib%20Modified", true))()
+local FarmToggle = FarmTab:CreateToggle({
+	Name = "Auto Farm (Set Aura Hit Mode)",
+	CurrentValue = false,
+	Flag = "farm"
+})
 
-local MainUI = UILibrary.Load("Much Ultra, Very Fair")
+local KillPlayersToggle = FarmTab:CreateToggle({
+	Name = "Kill Players while Farming (Uses Kill Aura Distance)",
+	CurrentValue = false,
+	Flag = "killPlayers"
+})
 
-local PageFarm = MainUI.AddPage("Farm", false)
-    
-local FarmToggle = PageFarm.AddToggle("Auto Farm (Set Aura Hit Mode)", false, function(value)
-    Toggles.Farm = value
-end)
+local KillBossToggle = FarmTab:CreateToggle({
+	Name = "Auto Boss Kill",
+	CurrentValue = false,
+	Flag = "bossKill"
+})
 
-local SliderFarmDistance = PageFarm.AddSlider("Farm Distance", {Min = 0, Max = 15, Def = FarmSettings.FarmDistance}, function(value)
-    FarmSettings.FarmDistance = value
-    Save("FarmSettings", FarmSettings)
-end)
+local FarmDistanceSlider = FarmTab:CreateSlider({
+	Name = "Farm Distance",
+	Range = {0, 20},
+	CurrentValue = 6,
+	Increment = 1,
+	Suffix = "units",
+	Flag = "farmDistance"
+})
 
-local SliderAuraDistance = PageFarm.AddSlider("Farm Aura Distance", {Min = 0, Max = 20, Def = FarmSettings.AuraDistance}, function(value)
-    FarmSettings.AuraDistance = value
-    Save("FarmSettings", FarmSettings)
-end)
+local FarmAuraDistanceSlider = FarmTab:CreateSlider({
+	Name = "Farm KillAura Distance",
+	Range = {0, 40},
+	CurrentValue = 10,
+	Increment = 1,
+	Suffix = "units",
+	Flag = "farmAuraDistance"
+})
 
-local KillToggle = PageFarm.AddToggle("Kill Players while Farming (Uses Kill Aura Distance)", FarmSettings.KillPlayers, function(value)
-    FarmSettings.KillPlayers = value
-    Save("FarmSettings", FarmSettings)
-end)
-
-local BossToggle = PageFarm.AddToggle("Auto Boss Kill", false, function(value)
-    Toggles.FarmBoss = value
-    if value then
-        BossFarm()
+local QuestDropdown = FarmTab:AddDropdown({
+	Name = "Quest Select",
+	CurrentValue = "Real Amgogus",
+	Options = {
+        "Real Amgogus",
+		"Gaming Disorder",
+		"Kingdom",
+		"Rigged Game",
+		"Trouble in the backrooms",
+		"Something is in the sewers",
+		"Cooking some crossovers",
+		"Troubles from another timeline",
+		"From another world",
+		"Ultra Fair"
+        },
+	Flag = "quest",
+	Callback = function(value)
     end
-end)
+})
 
-local QuestSelect = PageFarm.AddDropdown("Quest Select", {
-    "Real Amgogus",
-    "Gaming Disorder",
-    "Kingdom",
-    "Rigged Game",
-    "Trouble in the backrooms",
-    "Something is in the sewers",
-    "Cooking some crossovers",
-    "Troubles from another timeline",
-	"From another world",
-    "Ultra Fair"
-    }, function(value)
-        FarmSettings.SelectedQuest = value
-        Save("FarmSettings", FarmSettings)
-end, FarmSettings.SelectedQuest)
+local KillTab = Window:CreateTab("Kill Aura", 4483362458)
 
+local KillAuraToggle = KillTab:CreateToggle({
+	Name = "Kill Aura",
+	CurrentValue = false,
+	Flag = "killAura"
+})
 
+local MobKillAuraToggle = KillTab:CreateToggle({
+	Name = "Only Mob Kill Aura (Overrides Kill Aura)",
+	CurrentValue = false,
+	Flag = "mobAura"
+})
 
-local PageKillAura = MainUI.AddPage("Kill Aura", false)
+local KillAuraDistance = KillTab:CreateSlider({
+	Name = "Kill Aura Distance",
+	Range = {0, 300},
+	CurrentValue = 30,
+	
+	Increment = 1,
+	Suffix = "units",
+	Flag = "killDistance"
+})
 
-local KillAuraToggle = PageKillAura.AddToggle("Kill Aura", false, function(value)
-    Toggles.KillAura = value
-end)
+local HitDelaySlider = KillTab:CreateSlider({
+	Name = "Hit Delay",
+	Range = {1, 3000},
+	CurrentValue = 150,
+	
+	Increment = 5,
+	Suffix = "ms",
+	Flag = "hitDelay",
+})
 
-local MobAuraToggle = PageKillAura.AddToggle("Only Mob Kill Aura (Overrides Kill Aura)", false, function(value)
-    Toggles.MobAura = value    
-end)
+local AuraModeDropdown = KillTab:AddDropdown({
+	Name = "Aura Hit Mode",
+	CurrentValue = "Punch",
+	Options = {   
+        "Punch",
+        "Dark Blade",
+        "Energy Blade"
+        },
+	Flag = "auraMode",
+})
 
-local SliderKillDistance = PageKillAura.AddSlider("Kill Aura Distance", {Min = 0, Max = 500, Def = AuraSettings.KillDistance}, function(value)
-    AuraSettings.KillDistance = value
-    Save("AuraSettings", AuraSettings)
-end)
-
-local SliderPunchSpeed = PageKillAura.AddSlider("Hit Speed (ms)", {Min = 1, Max = 1000, Def = AuraSettings.PunchSpeed * 1000}, function(value)
-    AuraSettings.PunchSpeed = value/1000
-    Save("AuraSettings", AuraSettings)
-end)
-
--- local Label1 = PageKillAura.AddLabel("Choose Aura Mode")
-
-local AuraMode = PageKillAura.AddDropdown("Aura Hit Mode",
-    {   
-    "Punch",
-    "Dark Blade (Arbiter Only)",
-    "Energy Blade"
-    }, function(value)
-        AuraSettings.Mode = value
-        Save("AuraSettings", AuraSettings)
-end, AuraSettings.Mode)
+local RollTab = Window:CreateTab("Roll", 4483362458)
 
 
+RollTab:CreateButton({
+	Name = "Roll Ability",
+	Callback = function()
+        Rep.Reroll:InvokeServer()
+    end   
+})
 
-local PageRoll = MainUI.AddPage("Roll", false)
+RollTab:CreateButton({
+	Name = "Roll 10 Abilities",
+	Callback = function()
+        Rep.Reroll:InvokeServer(nil, nil, true)
+    end   
+})
 
-local RollAbility = PageRoll.AddButton("Roll Ability", function()
-    Rep.Reroll:InvokeServer()
-end)
 
-local Roll10Ability = PageRoll.AddButton("Roll 10 Abilities", function()
-    Rep.Reroll:InvokeServer(nil, nil, true)
-end)
-
-local ToggleAutoRoll = PageRoll.AddToggle("Auto Roll Ability", false, function(value)
-    Toggles.AutoRoll = value
-    RerollPath.Enabled = true
-    if value then
-        autoRoll()
+local AutoRollToggle = RollTab:CreateToggle({
+	Name = "Auto Roll Ability",
+	CurrentValue = false,
+	Flag = "autoRoll",
+	Callback = function(value)
+		if value then
+			autoRoll()
+		end
     end
-end)
+})
 
--- local ToggleAutoRoll = PageRoll.AddToggle("Hide GUI when Auto", false, function(value)
---     RollSettings.Hide = value
---     RerollPath.Enabled = true
--- end)
-
-
-local RollThreshold = PageRoll.AddSlider("Roll Minimum Level (Global)", {Min = 0, Max = 30, Def = RollSettings.Threshold, Decimal = 1}, function(value)
-    RollSettings.Threshold = value
-    Save("RollSettings", RollSettings)
-end)
+local RollMinimumLevelSlider = RollTab:CreateSlider({
+	Name = "Roll Minimum Level (Global)",
+	Range = {0, 30},
+	CurrentValue = 20,
+	Increment = 0.1,
+	Suffix = "Level",
+	Flag = "globalMinLevel",
+})
 
 
-local AutoStore = PageRoll.AddToggle("Auto Store Ability", RollSettings.Store, function(value)
-    RollSettings.Store = value
-end)
+local HideGuiToggle = RollTab:CreateToggle({
+	Name = "Hide GUI when Auto",
+	CurrentValue = false,
+	Flag = "hideRollGui",
+	
+})
+
+local AutoStoreToggle = RollTab:CreateToggle({
+	Name = "Auto Store Ability",
+	CurrentValue = false,
+	Flag = "storeAbility",
+	
+})
+
+RollTab:CreateSection("Equipment Roll",false)
+
+local RollAmountSlider = RollTab:CreateSlider({
+	Name = "Equipment Roll Amount",
+	Range = {1, 500},
+	CurrentValue =  100,
+	Increment = 5,
+	Suffix = "Rolls",
+	Flag = "rollAmount"
+})
 
 
-local LabelRoll = PageRoll.AddLabel("Equipment Roll")
+RollTab:CreateButton({
+	Name = "Roll Fist",
+	Callback = function()
+        for i = 1, RollAmountSlider.CurrentValue do
+			game:GetService("ReplicatedStorage").RollGear:InvokeServer(unpack({[1] = "Fist"}))
+		end
+    end   
+})
 
-local RollFist = PageRoll.AddButton("Roll Fist", function()
-    for i = 1, RollSettings.Amount do
-        local args = {
-            [1] = "Fist"
-        }
-
-        game:GetService("ReplicatedStorage").RollGear:InvokeServer(unpack(args))
-    end
-end)
-
-local RollStyle = PageRoll.AddButton("Roll Style", function()
-    for i = 1, RollSettings.Amount do
-        local args = {
-            [1] = "Relic"
-        }
-
-        game:GetService("ReplicatedStorage").RollGear:InvokeServer(unpack(args))
-    end
-end)
-
-local SliderGear = PageRoll.AddSlider("Equipment Roll Amount", {Min = 0, Max = 100, Def = RollSettings.Amount}, function(value)
-    RollSettings.Amount = value
-    Save("RollSettings", RollSettings)
-end)
-
-local PageUpgrade = MainUI.AddPage("Upgrade", false)
-
-local MassUpgradeFistButton = PageUpgrade.AddButton(
-    "Mass Upgrade Current Fist",
-    function()
-        massUpgrade("Fist", UpgradeSettings.IgnoreUpgraded, UpgradeSettings.Threshold)
-    end
-)
-
-local MassUpgradeRelicButton = PageUpgrade.AddButton(
-    "Mass Upgrade Current Relic",
-    function()
-        massUpgrade("Relic", UpgradeSettings.IgnoreUpgraded, UpgradeSettings.Threshold)
-    end
-)
-
-local UpgradeThresholdSlider = PageUpgrade.AddSlider(
-    "Material Level Threshold", 
-    {
-        Min = 0.0, 
-        Max = 10.0, 
-        Def = UpgradeSettings.Threshold,
-        Decimal = 1
-    }, 
-    function(value)
-        UpgradeSettings.Threshold = value
-        Save("UpgradeSettings", UpgradeSettings)
-    end
-)
-
-local IgnoreUpgraded = PageUpgrade.AddToggle(
-    "Ignore Upgraded As Material", 
-    UpgradeSettings.IgnoreUpgraded, 
-    function(value)
-        UpgradeSettings.IgnoreUpgraded = value
-        Save("UpgradeSettings", UpgradeSettings)
-    end
-)
+RollTab:CreateButton({
+	Name = "Roll Style",
+	Callback = function()
+        for i = 1, RollAmountSlider.CurrentValue do
+			game:GetService("ReplicatedStorage").RollGear:InvokeServer(unpack({[1] = "Relic"}))
+		end
+    end   
+})
 
 
 
+local UpgradeTab = Window:CreateTab("Upgrade", 4483362458)
 
-local PageAutoRoll = MainUI.AddPage("Auto Config", true)
+local UpgradeThresholdSlider = UpgradeTab:CreateSlider({
+	Name = "Material Level Threshold",
+	Range = {0, 10},
+	CurrentValue =  5,
+	Increment = 0.1,
+	Suffix = "Level",
+	Flag = "upgradeThreshold"
+})
 
-local autoLuck = PageAutoRoll.AddToggle("Auto Cast Ultra & Super Luck", RollSettings.Luck, function(value)
-    RollSettings.Luck = value
-    Save("RollSettings", RollSettings)
-    if value then
-        autoLuck()
-    end
-end)
+local IgnoreUpgradedToggle = UpgradeTab:CreateToggle({
+	Name = "Ignore Upgraded As Material",
+	CurrentValue = false,
+	Flag = "ignoreUpgraded",
+	
+})
 
-local Button1 = PageAutoRoll.AddButton("Set Minimum Levels (Overrides Global, 0 is OFF)", function()
-    for i, v in pairs(AbilityDict) do
-        print("key: "..i.. " value: ".. v)
-    end
-end)
+UpgradeTab:CreateButton({
+	Name = "Mass Upgrade Current Fist",
+	Callback = function()
+        massUpgrade("Fist", IgnoreUpgradedToggle.CurrentValue, UpgradeThresholdSlider.CurrentValue)
+    end   
+})
 
-local AbilitySliders = {}
+UpgradeTab:CreateButton({
+	Name = "Mass Upgrade Current Relic",
+	Callback = function()
+        massUpgrade("Relic", IgnoreUpgradedToggle.CurrentValue, UpgradeThresholdSlider.CurrentValue)
+    end   
+})
 
-for i, v in pairs(AbilityList) do
-    table.insert(AbilitySliders, (PageAutoRoll.AddSlider(v, {Min = 0, Max = 30, Def = AbilityDict[v], Decimal = 1}, function(value)
-        AbilityDict[v] = value
-        Save("AbilityFilter", AbilityDict)
-    end)))
+
+local AutoTab = Window:CreateTab("Auto Config", 4483362458)
+
+AutoTab:CreateSection("Set Minimum Levels (Overrides Global, 0 is OFF)",false)
+
+for abil in AbilityList do
+    table.insert({}, (
+		AutoTab:CreateSlider({
+			Name = abil,
+			Range = {0, 30},
+			CurrentValue =  0,
+			Increment = 0.1,
+			Suffix = "Level",
+			Flag = "ability_"..abil,
+		})
+	))
 end
 
 
+local LuckTab = Window:CreateTab("Luck", 4483362458)
 
-local PageMisc = MainUI.AddPage("Misc", false)
 
-local AttackBarrier = PageMisc.AddToggle("Damage Arlo Boss Barrier", false, function(value)
-    Toggles.BreakBarrier = value
-end)
+local AutoLuckToggle = LuckTab:CreateToggle({
+	Name = "Auto Cast Ultra & Super Luck",
+	CurrentValue = false,
+	Flag = "autoLuck",
+	Callback = autoLuck
+})
 
-local Reset = PageMisc.AddButton("Reset Character", function()
-    Player.Character.Humanoid.Health = 0
-end)
+local playerlist
 
-local ServerHop = PageMisc.AddButton("Server Hop", function()
-    serverHop()
-end)
+for player in Players:GetChildren() do
+	table:insert(playerlist, player.Name)
+end
 
-local autoRejoin = PageMisc.AddToggle("Auto Server Hop on Moderator Join", FarmSettings.LeaveOnMod, function(value)
-    FarmSettings.LeaveOnMod = value
-    Save("FarmSettings", FarmSettings)
-    checkCurrentMods()
-end)
+local LuckTargetDropdown = LuckTab:CreateDropdown({
+	Name = "Targeted Player(s)",
+	Options = playerlist,
+	CurrentOption = playerlist[0],
+	MultiSelection = true, 
+})
+
+
+local LuckTypeDropdown = LuckTab:AddDropdown({
+	Name = "Luck Type",
+	CurrentValue = "Lucky",
+	Options = {   
+		"Bad Luck",
+        "Lucky",
+        "Super Lucky",
+        "Ultra Lucky"
+        },
+	Flag = "luckType",
+	
+})
+
+LuckTab:CreateButton({
+	Name = "Give Luck to Player",
+	Callback = function()
+		for player in LuckTargetDropdown.CurrentOption do
+			local args = {
+				[1] = "Group Gamble",
+				[2] = {
+					["Color"] = Color3.new(),
+					["Boost"] = LuckTypeDropdown.CurrentOption,
+					["HitPlayers"] = {
+						[1] = player
+					}
+				}
+			}
+			
+			Rep.Remotes.SkillCast:FireServer(unpack(args))
+		end
+    end
+})
+
+
+
+local MiscTab = Window:CreateTab("Misc", 4483362458)
+
+MiscTab:CreateToggle({
+	Name = "Damage Arlo Boss Barrier",
+	CurrentValue = false,
+	Flag = "damageBossBarrier",
+})
+
+MiscTab:CreateButton({
+	Name = "Reset Character",
+	Callback = function()
+		Player.Character.Humanoid.Health = 0
+    end
+})
+
+MiscTab:CreateButton({
+	Name = "Server Hop",
+	Callback = serverHop
+})
+
+MiscTab:CreateToggle({
+	Name = "Auto Server Hop on Moderator Join",
+	CurrentValue = true,
+	Flag = "leaveOnMod",
+	Callback = checkCurrentMods
+})
+
+
+ArrayField:LoadConfiguration()
