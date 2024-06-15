@@ -989,6 +989,32 @@ end)
 
 local target
 
+local TargetPlayer = PageLuck.AddTextBox(
+    "Target Player",
+    function(value)
+        target = nil
+        for _, player in Players:GetChildren() do
+            if player.Name:lower():find(value:lower(), 1, true) then
+                target = player
+            end
+        end
+    end
+)
+
+local LuckMode = PageLuck.AddDropdown("Luck Mode", {
+    "Bad Luck",
+    "Lucky",
+    "Super Lucky",
+    "Ultra Lucky",
+    }, 
+    function(value)
+        RollSettings.LuckMode = value
+        Save("RollSettings", RollSettings)
+    end, 
+    RollSettings.LuckMode
+)
+
+
 local GiveLuck = PageLuck.AddButton(
     "Give Luck to Player",
     function()
@@ -1009,29 +1035,26 @@ local GiveLuck = PageLuck.AddButton(
     end
 )
 
-local TargetPlayer = PageLuck.AddTextBox(
-    "Target Player",
-    function(value)
-        target = nil
+local GlobalLuck = PageLuck.AddButton(
+    "Luck Everyone",
+    function()
+        local playerList = {}
         for _, player in Players:GetChildren() do
-            if player.Name:lower():find(value:lower(), 1, true) then
-                target = player
-            end
+            table.insert(playerList, player)
+        end
+        if target then
+            local args = {
+                [1] = "Group Gamble",
+                [2] = {
+                    ["Color"] = Color3.new(),
+                    ["Boost"] = RollSettings.LuckMode,
+                    ["HitPlayers"] = playerList
+                }
+            }
+            
+            Rep.Remotes.SkillCast:FireServer(unpack(args))
         end
     end
-)
-
-local QuestSelect = PageLuck.AddDropdown("Quest Select", {
-    "Bad Luck",
-    "Lucky",
-    "Super Lucky",
-    "Ultra Lucky",
-    }, 
-    function(value)
-        RollSettings.LuckMode = value
-        Save("RollSettings", RollSettings)
-    end, 
-    RollSettings.LuckMode
 )
 
 local PageMisc = MainUI.AddPage("Misc", false)
