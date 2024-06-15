@@ -980,10 +980,10 @@ local AutoLuckToggle = LuckTab:CreateToggle({
 	Callback = autoLuck
 })
 
-local playerlist
+local playerlist = {}
 
-for player in Players:GetChildren() do
-	table:insert(playerlist, player.Name)
+for _i, player in Players:GetChildren() do
+	table.insert(playerlist, player.Name)
 end
 
 local LuckTargetDropdown = LuckTab:CreateDropdown({
