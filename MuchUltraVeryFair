@@ -738,19 +738,26 @@ local FarmTab = Window:CreateTab("Farm", 4483362458)
 local FarmToggle = FarmTab:CreateToggle({
 	Name = "Auto Farm (Set Aura Hit Mode)",
 	CurrentValue = false,
-	Flag = "farm"
+	Flag = "farm",
+	Callback = function(value) end
 })
 
 local KillPlayersToggle = FarmTab:CreateToggle({
 	Name = "Kill Players while Farming (Uses Kill Aura Distance)",
 	CurrentValue = false,
-	Flag = "killPlayers"
+	Flag = "killPlayers",
+	Callback = function(value) end
 })
 
 local KillBossToggle = FarmTab:CreateToggle({
 	Name = "Auto Boss Kill",
 	CurrentValue = false,
-	Flag = "bossKill"
+	Flag = "bossKill",
+	Callback = function(value)
+		if value then
+			BossFarm()
+		end
+	end
 })
 
 local FarmDistanceSlider = FarmTab:CreateSlider({
@@ -759,7 +766,8 @@ local FarmDistanceSlider = FarmTab:CreateSlider({
 	CurrentValue = 6,
 	Increment = 1,
 	Suffix = "units",
-	Flag = "farmDistance"
+	Flag = "farmDistance",
+	Callback = function(value) end
 })
 
 local FarmAuraDistanceSlider = FarmTab:CreateSlider({
@@ -768,7 +776,8 @@ local FarmAuraDistanceSlider = FarmTab:CreateSlider({
 	CurrentValue = 10,
 	Increment = 1,
 	Suffix = "units",
-	Flag = "farmAuraDistance"
+	Flag = "farmAuraDistance",
+	Callback = function(value) end
 })
 
 local QuestDropdown = FarmTab:CreateDropdown({
@@ -787,6 +796,7 @@ local QuestDropdown = FarmTab:CreateDropdown({
 		"Ultra Fair"
         },
 	Flag = "quest",
+	Callback = function(value) end
 })
 
 local KillTab = Window:CreateTab("Kill Aura", 4483362458)
@@ -794,33 +804,35 @@ local KillTab = Window:CreateTab("Kill Aura", 4483362458)
 local KillAuraToggle = KillTab:CreateToggle({
 	Name = "Kill Aura",
 	CurrentValue = false,
-	Flag = "killAura"
+	Flag = "killAura",
+	Callback = function(value) end
 })
 
 local MobKillAuraToggle = KillTab:CreateToggle({
 	Name = "Only Mob Kill Aura (Overrides Kill Aura)",
 	CurrentValue = false,
-	Flag = "mobAura"
+	Flag = "mobAura",
+	Callback = function(value) end
 })
 
 local KillAuraDistance = KillTab:CreateSlider({
 	Name = "Kill Aura Distance",
 	Range = {0, 300},
 	CurrentValue = 30,
-	
 	Increment = 1,
 	Suffix = "units",
-	Flag = "killDistance"
+	Flag = "killDistance",
+	Callback = function(value) end
 })
 
 local HitDelaySlider = KillTab:CreateSlider({
 	Name = "Hit Delay",
 	Range = {1, 3000},
 	CurrentValue = 150,
-	
 	Increment = 5,
 	Suffix = "ms",
 	Flag = "hitDelay",
+	Callback = function(value) end
 })
 
 local AuraModeDropdown = KillTab:CreateDropdown({
@@ -832,6 +844,7 @@ local AuraModeDropdown = KillTab:CreateDropdown({
         "Energy Blade"
         },
 	Flag = "auraMode",
+	Callback = function(value) end
 })
 
 local RollTab = Window:CreateTab("Roll", 4483362458)
@@ -870,6 +883,7 @@ local RollMinimumLevelSlider = RollTab:CreateSlider({
 	Increment = 0.1,
 	Suffix = "Level",
 	Flag = "globalMinLevel",
+	Callback = function(value) end
 })
 
 
@@ -877,6 +891,7 @@ local HideGuiToggle = RollTab:CreateToggle({
 	Name = "Hide GUI when Auto",
 	CurrentValue = false,
 	Flag = "hideRollGui",
+	Callback = function(value) end
 	
 })
 
@@ -884,6 +899,7 @@ local AutoStoreToggle = RollTab:CreateToggle({
 	Name = "Auto Store Ability",
 	CurrentValue = false,
 	Flag = "storeAbility",
+	Callback = function(value) end
 	
 })
 
@@ -895,7 +911,8 @@ local RollAmountSlider = RollTab:CreateSlider({
 	CurrentValue =  100,
 	Increment = 5,
 	Suffix = "Rolls",
-	Flag = "rollAmount"
+	Flag = "rollAmount",
+	Callback = function(value) end
 })
 
 
@@ -927,13 +944,15 @@ local UpgradeThresholdSlider = UpgradeTab:CreateSlider({
 	CurrentValue =  5,
 	Increment = 0.1,
 	Suffix = "Level",
-	Flag = "upgradeThreshold"
+	Flag = "upgradeThreshold",
+	Callback = function(value) end
 })
 
 local IgnoreUpgradedToggle = UpgradeTab:CreateToggle({
 	Name = "Ignore Upgraded As Material",
 	CurrentValue = false,
 	Flag = "ignoreUpgraded",
+	Callback = function(value) end
 	
 })
 
@@ -965,6 +984,7 @@ for i, abil in AbilityList do
 			Increment = 0.1,
 			Suffix = "Level",
 			Flag = "ability_"..abil,
+			Callback = function(value) end
 		})
 	))
 end
@@ -990,7 +1010,8 @@ local LuckTargetDropdown = LuckTab:CreateDropdown({
 	Name = "Targeted Player(s)",
 	Options = playerlist,
 	CurrentOption = playerlist[0],
-	MultiSelection = true, 
+	MultiSelection = true,
+	Callback = function(value) end
 })
 
 
@@ -1004,6 +1025,7 @@ local LuckTypeDropdown = LuckTab:CreateDropdown({
         "Ultra Lucky"
         },
 	Flag = "luckType",
+	Callback = function(value) end
 	
 })
 
@@ -1035,6 +1057,7 @@ MiscTab:CreateToggle({
 	Name = "Damage Arlo Boss Barrier",
 	CurrentValue = false,
 	Flag = "damageBossBarrier",
+	Callback = function(value) end
 })
 
 MiscTab:CreateButton({
