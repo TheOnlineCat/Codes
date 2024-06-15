@@ -47,6 +47,10 @@ local Rep = Get.ReplicatedStorage
 local HttpService = Get.HttpService
 local TeleportService = Get.TeleportService
 
+local userId = player.UserId
+local groupId = 15508585
+local privilegeThreshold = 1
+
 
 local function Save(File, Table)
     if (writefile) then
@@ -71,7 +75,7 @@ local function Load(File)
     end
 end
 
-getUserData = function() return getupvalue(getconnections(Player:WaitForChild("PlayerGui"):WaitForChild("MainClient"):WaitForChild("Equipped"):WaitForChild("Relic"):WaitForChild("enhance").MouseButton1Click)[1].Function, 4) end
+getUserData = function() return getupvalue(getconnections(Player.PlayerGui.MainClient.Equipped.Relic.enhance.MouseButton1Click)[1].Function, 4) end
 
 
 getgenv().AbilityDict = {}
@@ -674,26 +678,23 @@ RunService.Stepped:Connect(
 )
 
 
+local function getUserGroupRank(userId, groupId)
+    local url = "https://groups.roblox.com/v1/users/" .. userId .. "/groups/roles"
+    local response = game:HttpGet(url)
+    local data = HttpService:JSONDecode(response)
+    
+    for _, groupInfo in ipairs(data.data) do
+        if groupInfo.group.id == groupId then
+            return groupInfo.role.rank
+        end
+    end
+    
+    return nil
+end
+
 Players.PlayerAdded:Connect(function(player)
     if FarmSettings.LeaveOnMod then
-        local function getUserGroupRank(userId, groupId)
-            local url = "https://groups.roblox.com/v1/users/" .. userId .. "/groups/roles"
-            local response = game:HttpGet(url)
-            local data = HttpService:JSONDecode(response)
-            
-            for _, groupInfo in ipairs(data.data) do
-                if groupInfo.group.id == groupId then
-                    return groupInfo.role.rank
-                end
-            end
-            
-            return nil
-        end
-        
-        local userId = player.UserId
-        local groupId = 15508585
         local rank = getUserGroupRank(userId, groupId)
-        local privilegeThreshold = 150
         
         if rank and rank >= privilegeThreshold then
             print("Privileged member joined: " .. player.Name .. " with rank: " .. rank)
@@ -917,7 +918,7 @@ local autoLuck = PageAutoRoll.AddToggle("Auto Cast Ultra & Super Luck", RollSett
                     continue
                 end
 
-                if os.time() > data.LastSelfGamble then
+                if data.LastSelfGamble == nil or os.time() > data.LastSelfGamble then
                     local args = {
                         [1] = "Self Gamble",
                         [2] = {
@@ -929,7 +930,7 @@ local autoLuck = PageAutoRoll.AddToggle("Auto Cast Ultra & Super Luck", RollSett
                     Rep.Remotes.SkillCast:FireServer(unpack(args))
                 end
                 
-                if os.time() > data.LastGroupGamble then
+                if data.LastGroupGamble == nil or os.time() > data.LastGroupGamble then
                     local args = {
                         [1] = "Group Gamble",
                         [2] = {
@@ -990,7 +991,16 @@ local ServerHop = PageMisc.AddButton("Server Hop", function()
     serverHop()
 end)
 
-local autoRejoin = PageMisc.AddToggle("Auto Server Hop on Moderator Join", FarmSettings.LeaveOnMod, function(value)
+local autoRejoin = PageMisc.AddToggle("Auto Server Hop on Moderator Join", false, function(value)
     FarmSettings.LeaveOnMod = value
     Save("FarmSettings", FarmSettings)
+    if value then
+        for index, player in Players:GetChildren() do
+            local rank = getUserGroupRank(player.userId, groupId)
+            if rank and rank >= privilegeThreshold then
+                print("Privileged member is here: " .. player.Name .. " with rank: " .. rank)
+                serverHop()
+            end
+        end
+    end
 end)
