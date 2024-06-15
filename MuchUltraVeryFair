@@ -771,9 +771,9 @@ local FarmAuraDistanceSlider = FarmTab:CreateSlider({
 	Flag = "farmAuraDistance"
 })
 
-local QuestDropdown = FarmTab:AddDropdown({
+local QuestDropdown = FarmTab:CreateDropdown({
 	Name = "Quest Select",
-	CurrentValue = "Real Amgogus",
+	CurrentOption = "Real Amgogus",
 	Options = {
         "Real Amgogus",
 		"Gaming Disorder",
@@ -787,8 +787,6 @@ local QuestDropdown = FarmTab:AddDropdown({
 		"Ultra Fair"
         },
 	Flag = "quest",
-	Callback = function(value)
-    end
 })
 
 local KillTab = Window:CreateTab("Kill Aura", 4483362458)
@@ -825,9 +823,9 @@ local HitDelaySlider = KillTab:CreateSlider({
 	Flag = "hitDelay",
 })
 
-local AuraModeDropdown = KillTab:AddDropdown({
+local AuraModeDropdown = KillTab:CreateDropdown({
 	Name = "Aura Hit Mode",
-	CurrentValue = "Punch",
+	CurrentOption = "Punch",
 	Options = {   
         "Punch",
         "Dark Blade",
@@ -996,9 +994,9 @@ local LuckTargetDropdown = LuckTab:CreateDropdown({
 })
 
 
-local LuckTypeDropdown = LuckTab:AddDropdown({
+local LuckTypeDropdown = LuckTab:CreateDropdown({
 	Name = "Luck Type",
-	CurrentValue = "Lucky",
+	CurrentOption = "Lucky",
 	Options = {   
 		"Bad Luck",
         "Lucky",
