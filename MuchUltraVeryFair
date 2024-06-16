@@ -803,17 +803,17 @@ local PageFarm = MainUI.AddPage("Farm", false)
 local FarmToggle = PageFarm.AddToggle("Auto Farm (Set Aura Hit Mode)", false, function(value)
     Toggles.Farm = value
     if not value then
-        Player.Character:MoveTo(Vector3.new(Player.Character.HumanoidRootPart.Position.x, groundLevel+20, Player.Character.HumanoidRootPart.Position.z))
+        Player.Character:MoveTo(Vector3.new(Player.Character.HumanoidRootPart.Position.x, groundLevel+15, Player.Character.HumanoidRootPart.Position.z))
         Workspace.Gravity = 196.2
     end
 end)
 
-local SliderFarmDistance = PageFarm.AddSlider("Farm Distance", {Min = 0, Max = 15, Def = FarmSettings.FarmDistance}, function(value)
+local SliderFarmDistance = PageFarm.AddSlider("Farm Distance", {Min = 0, Max = 50, Def = FarmSettings.FarmDistance}, function(value)
     FarmSettings.FarmDistance = value
     Save("FarmSettings", FarmSettings)
 end)
 
-local SliderAuraDistance = PageFarm.AddSlider("Farm Aura Distance", {Min = 0, Max = 20, Def = FarmSettings.AuraDistance}, function(value)
+local SliderAuraDistance = PageFarm.AddSlider("Farm Aura Distance", {Min = 0, Max = 70, Def = FarmSettings.AuraDistance}, function(value)
     FarmSettings.AuraDistance = value
     Save("FarmSettings", FarmSettings)
 end)
