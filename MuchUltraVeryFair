@@ -363,14 +363,14 @@ local function BossFarm()
     spawn(function()
         while wait() and Toggles.FarmBoss do
             if BossFight then
-                local Boss = LocateBoss()
-
-                if (FarmSettings.Hidden) then
-                    local target = Vector3.new(Boss:GetModelCFrame().Position.x, groundLevel - FarmSettings.FarmDistance, Boss:GetModelCFrame().Position.z)
-                    Player.Character:MoveTo(target)
-                end
-
                 pcall(function()
+                    local Boss = LocateBoss()
+
+                    if (FarmSettings.Hidden) then
+                        local target = Vector3.new(Boss:GetModelCFrame().Position.x, groundLevel - FarmSettings.FarmDistance, Boss:GetModelCFrame().Position.z)
+                        Player.Character:MoveTo(target)
+                    end
+                    
                     while Boss.Humanoid.Health > 0 and Toggles.FarmBoss and Boss do
                         if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
                             activateAbility()
