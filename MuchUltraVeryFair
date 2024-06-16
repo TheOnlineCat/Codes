@@ -365,50 +365,44 @@ end
 
 
 local function BossFarm()
-    spawn(function()
-        while wait() and Toggles.FarmBoss do
-            if BossFight then
-                pcall(function()
-                    local Boss = LocateBoss()
+    pcall(function()
+        local Boss = LocateBoss()
 
-                    if (FarmSettings.Hidden) then
-                        local target = Vector3.new(Boss:GetModelCFrame().Position.x, groundLevel - FarmSettings.FarmDistance, Boss:GetModelCFrame().Position.z)
-                        Player.Character:MoveTo(target)
-                    end
+        if (FarmSettings.Hidden) then
+            local target = Vector3.new(Boss:GetModelCFrame().Position.x, groundLevel - FarmSettings.FarmDistance, Boss:GetModelCFrame().Position.z)
+            Player.Character:MoveTo(target)
+        end
 
-                    while Boss.Humanoid.Health > 0 and Toggles.FarmBoss and Boss do
-                        if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
-                            activateAbility()
-                        end
+        while Boss.Humanoid.Health > 0 and Toggles.FarmBoss and Boss do
+            if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
+                activateAbility()
+            end
 
-                        local currentDistance = 0
-                        if FarmSettings.Hidden then
-                            getDistanceTo(Boss, groundLevel - FarmSettings.FarmDistance)
-                        else
-                            getDistanceTo(Boss)
-                        end
-                        
-                        if currentDistance < AuraSettings.KillDistance then
-                            hit(Boss)
-                        else 
-                            Player.Character.Humanoid:MoveTo(getOffsetVector(Boss))
-                            wait(0.1)
-                        end
+            local currentDistance = 0
+            if FarmSettings.Hidden then
+                getDistanceTo(Boss, groundLevel - FarmSettings.FarmDistance)
+            else
+                getDistanceTo(Boss)
+            end
+            
+            if currentDistance < AuraSettings.KillDistance then
+                hit(Boss)
+            else 
+                Player.Character.Humanoid:MoveTo(getOffsetVector(Boss))
+                wait(0.1)
+            end
 
-                        if Toggles.BreakBarrier then
-                            local Barrier = getNearestObstacles(Boss, true)
-                            if getDistanceTo(Barrier) < AuraSettings.KillDistance  then
-                                hit(Barrier)
-                            end
-                        end
-                    end
-                end)
-                Player.Character:MoveTo(Vector3.new(Player.Character.HumanoidRootPart.Position.x, groundLevel, Player.Character.HumanoidRootPart.Position.z))
-                Workspace.Gravity = 196.2
-                BossFight = false
+            if Toggles.BreakBarrier then
+                local Barrier = getNearestObstacles(Boss, true)
+                if getDistanceTo(Barrier) < AuraSettings.KillDistance  then
+                    hit(Barrier)
+                end
             end
         end
     end)
+    Player.Character:MoveTo(Vector3.new(Player.Character.HumanoidRootPart.Position.x, groundLevel, Player.Character.HumanoidRootPart.Position.z))
+    Workspace.Gravity = 196.2
+    BossFight = false
 end
 
 
@@ -500,7 +494,8 @@ local function main()
                                 end
                             end
     
-                            if FarmSettings.KillPlayers and obstacle and getDistanceTo(obstacle) < AuraSettings.KillDistance then
+                            local enemyPlayer = getNearestObstacles(Player, false)
+                            if FarmSettings.KillPlayers and enemyPlayer and getDistanceTo(enemyPlayer) < AuraSettings.KillDistance then
                                 hit(obstacle)
                             end
                         end
@@ -518,6 +513,8 @@ local function main()
                         end
                     end)
                 end
+            else
+                BossFarm()
             end
         end
     end)
@@ -615,8 +612,10 @@ game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(funct
 end)
 
 local function autoRoll()
-    count = 0
-    Rep.Reroll:InvokeServer(nil, nil, true)
+    if(Toggles.AutoRoll) then
+        count = 0
+        Rep.Reroll:InvokeServer(nil, nil, true)
+    end
 end
 
 
@@ -819,6 +818,7 @@ end)
 
 spawn(checkCurrentMods)
 spawn(autoLuck)
+spawn(autoRoll)
 main()
 
 
@@ -832,8 +832,9 @@ local MainUI = UILibrary.Load("Much Ultra, Very Fair")
 
 local PageFarm = MainUI.AddPage("Farm", false)
     
-local FarmToggle = PageFarm.AddToggle("Auto Farm (Set Aura Hit Mode)", false, function(value)
+local FarmToggle = PageFarm.AddToggle("Auto Farm (Set Aura Hit Mode)", Toggles.Farm, function(value)
     Toggles.Farm = value
+    Save("Toggles", Toggles)
     if not value then
         pcall(function()
             Player.Character:MoveTo(Vector3.new(Player.Character.HumanoidRootPart.Position.x, groundLevel, Player.Character.HumanoidRootPart.Position.z))
@@ -857,11 +858,9 @@ local KillToggle = PageFarm.AddToggle("Kill Players while Farming (Uses Kill Aur
     Save("FarmSettings", FarmSettings)
 end)
 
-local BossToggle = PageFarm.AddToggle("Auto Boss Kill", false, function(value)
+local BossToggle = PageFarm.AddToggle("Auto Boss Kill", Toggles.FarmBoss, function(value)
     Toggles.FarmBoss = value
-    if value then
-        BossFarm()
-    end
+    Save("Toggles", Toggles)
 end)
 
 local TpToggle = PageFarm.AddToggle("Hidden Farm", FarmSettings.Hidden, function(value)
@@ -894,12 +893,14 @@ end, FarmSettings.SelectedQuest)
 
 local PageKillAura = MainUI.AddPage("Kill Aura", false)
 
-local KillAuraToggle = PageKillAura.AddToggle("Kill Aura", false, function(value)
+local KillAuraToggle = PageKillAura.AddToggle("Kill Aura", Toggles.KillAura, function(value)
     Toggles.KillAura = value
+    Save("Toggles", Toggles)
 end)
 
-local MobAuraToggle = PageKillAura.AddToggle("Only Mob Kill Aura (Overrides Kill Aura)", false, function(value)
-    Toggles.MobAura = value    
+local MobAuraToggle = PageKillAura.AddToggle("Only Mob Kill Aura (Overrides Kill Aura)", Toggles.MobAura, function(value)
+    Toggles.MobAura = value 
+    Save("Toggles", Toggles)   
 end)
 
 local SliderKillDistance = PageKillAura.AddSlider("Kill Aura Distance", {Min = 0, Max = 500, Def = AuraSettings.KillDistance}, function(value)
@@ -936,9 +937,10 @@ local Roll10Ability = PageRoll.AddButton("Roll 10 Abilities", function()
     Rep.Reroll:InvokeServer(nil, nil, true)
 end)
 
-local ToggleAutoRoll = PageRoll.AddToggle("Auto Roll Ability", false, function(value)
+local ToggleAutoRoll = PageRoll.AddToggle("Auto Roll Ability", Toggles.AutoRoll, function(value)
     Toggles.AutoRoll = value
-    if value then
+    Save("Toggles", Toggles)
+    if(value) then
         autoRoll()
     end
 end)
@@ -1118,28 +1120,27 @@ local GlobalLuck = PageLuck.AddButton(
         for _, player in Players:GetChildren() do
             table.insert(playerList, player)
         end
-        if target then
-            local args = {
-                [1] = "Group Gamble",
-                [2] = {
-                    ["Color"] = Color3.new(),
-                    ["Boost"] = RollSettings.LuckMode,
-                    ["HitPlayers"] = playerList
-                }
+        local args = {
+            [1] = "Group Gamble",
+            [2] = {
+                ["Color"] = Color3.new(),
+                ["Boost"] = RollSettings.LuckMode,
+                ["HitPlayers"] = playerList
             }
-            
-            Rep.Remotes.SkillCast:FireServer(unpack(args))
-        end
+        }
+        
+        Rep.Remotes.SkillCast:FireServer(unpack(args))
     end
 )
 
 local PageMisc = MainUI.AddPage("Misc", false)
 
-local AttackBarrier = PageMisc.AddToggle("Damage Arlo Boss Barrier", false, function(value)
+local AttackBarrier = PageMisc.AddToggle("Damage Arlo Boss Barrier", Toggles.BreakBarrier, function(value)
     Toggles.BreakBarrier = value
+    Save("Toggles", Toggles)
 end)
 
-local King = PageMisc.AddToggle("Relinquish King", false, function(value)
+local King = PageMisc.AddToggle("Relinquish King", Toggles.RelinquishCrown, function(value)
     Toggles.RelinquishCrown = value
     if value then
         local args = {
