@@ -590,11 +590,13 @@ game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(funct
                 repeat
                 wait(1)
                 clickEndRoll()
+                wait(0.1)
                 until not RerollPath.Rerolls.visible or not Toggles.AutoRoll
 
                 repeat
                     wait(0.5)
                     Rep.Reroll:InvokeServer(nil, nil, true)
+                    wait(0.1)
                 until RerollPath.Rerolls.visible or not Toggles.AutoRoll
             end)
         end
@@ -850,7 +852,7 @@ local TpToggle = PageFarm.AddToggle("Hidden Farm", FarmSettings.Hidden, function
     Save("FarmSettings", FarmSettings)
 end)
 
-local Test = PageFarm.AddToggle("Test321 Farm", FarmSettings.Test, function(value)
+local Test = PageFarm.AddToggle("Test12 Farm", FarmSettings.Test, function(value)
     FarmSettings.Test = value
     Save("FarmSettings", FarmSettings)
 end)
