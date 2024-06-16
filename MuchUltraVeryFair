@@ -151,7 +151,7 @@ end
 local function getDistanceTo(object, yOverride) 
     local objectPosition = object:GetModelCFrame().Position
     if(yOverride) then
-        objectPosition += yOverride
+        objectPosition = Vector3.new(objectPosition.x, yOverride, objectPosition.z)
     end
     return (Player.Character.HumanoidRootPart.Position - objectPosition).Magnitude
 end
@@ -360,8 +360,7 @@ local function BossFarm()
     local Boss = LocateBoss()
 
     if (FarmSettings.Hidden) then
-        local target = getOffsetVector(Boss)
-        target.y = groundLevel
+        local target = Vector3.new(Boss:GetModelCFrame().Position.x, groundLevel, Boss:GetModelCFrame().Position.x)
         Player.Character:MoveTo(target)
     end
 
@@ -452,8 +451,7 @@ local function main()
                             end
                         else
                             if FarmSettings.Hidden then
-                                local tpPosition = enemy:GetModelCFrame().Position
-                                tpPosition.y = groundLevel
+                                local tpPosition = Vector3.new(enemy:GetModelCFrame().Position.x, groundLevel, enemy:GetModelCFrame().Position.z)
                                 Player.Character:MoveTo(tpPosition)
                             else
                                 if currentDistance >= 300 then
