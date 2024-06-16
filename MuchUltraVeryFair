@@ -803,7 +803,7 @@ end)
 
 spawn(function()
     while wait() do
-        if not Toggles.AutoRollRelinquishCrown then
+        if not Toggles.RelinquishCrown then
             continue
         end
 
@@ -910,7 +910,7 @@ local TpToggle = PageFarm.AddToggle("Hidden Farm", FarmSettings.Hidden, function
     end
 end)
 
-local Test = PageFarm.AddToggle("Test69 Farm", FarmSettings.Test, function(value)
+local Test = PageFarm.AddToggle("Test123 Farm", FarmSettings.Test, function(value)
     FarmSettings.Test = value
     Save("FarmSettings", FarmSettings)
 end)
