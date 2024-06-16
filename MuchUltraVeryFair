@@ -654,46 +654,47 @@ end
 
 
 local function autoLuck()
-    spawn(pcall(function()
+    spawn(function()
         while RollSettings.Luck do
+            pcall(function()
+                local data = getUserData()
 
-            local data = getUserData()
+                if(data == nil) then
+                    wait()
+                    return
+                end
 
-            if(data == nil) then
-                wait()
-                continue
-            end
-
-            if data.LastSelfGamble == nil or os.time() > data.LastSelfGamble then
-                local args = {
-                    [1] = "Self Gamble",
-                    [2] = {
-                        ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
-                        ["Boost"] = "Ultra Lucky"
-                    }
-                }
-                
-                Rep.Remotes.SkillCast:FireServer(unpack(args))
-            end
-            
-            if data.LastGroupGamble == nil or os.time() > data.LastGroupGamble then
-                local args = {
-                    [1] = "Group Gamble",
-                    [2] = {
-                        ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
-                        ["Boost"] = "Super Lucky",
-                        ["HitPlayers"] = {
-                            [1] = Player
+                if data.LastSelfGamble == nil or os.time() > data.LastSelfGamble then
+                    local args = {
+                        [1] = "Self Gamble",
+                        [2] = {
+                            ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
+                            ["Boost"] = "Ultra Lucky"
                         }
                     }
-                }
+                    
+                    Rep.Remotes.SkillCast:FireServer(unpack(args))
+                end
                 
-                Rep.Remotes.SkillCast:FireServer(unpack(args))
-            end
+                if data.LastGroupGamble == nil or os.time() > data.LastGroupGamble then
+                    local args = {
+                        [1] = "Group Gamble",
+                        [2] = {
+                            ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
+                            ["Boost"] = "Super Lucky",
+                            ["HitPlayers"] = {
+                                [1] = Player
+                            }
+                        }
+                    }
+                    
+                    Rep.Remotes.SkillCast:FireServer(unpack(args))
+                end
 
-            wait(3)
+                wait(3)
+            end)
         end
-    end))
+    end)
 end
 
 
