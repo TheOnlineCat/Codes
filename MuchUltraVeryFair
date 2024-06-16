@@ -406,7 +406,6 @@ local function main()
                     end
 
                     BossFight = true
-                    BossFight = spawn(BossFarm)
                     continue
                 end
 
@@ -424,6 +423,12 @@ local function main()
                         if questCount[1] == questCount[2] then
                             quest("Completed")
                         end
+                    end
+
+                    if FarmSettings.Hidden then
+                        Workspace.Gravity = 0
+                    else 
+                        Workspace.Gravity = 1.98
                     end
         
 
@@ -732,7 +737,7 @@ local function checkCurrentMods()
     if FarmSettings.LeaveOnMod then
         for index, player in Players:GetChildren() do
             spawn(function()
-                local rank = pcall(getUserGroupRank, player.userId, groupId)
+                local success, rank = pcall(getUserGroupRank, player.userId, groupId)
                 if rank and rank >= privilegeThreshold then
                     print("Privileged member is here: " .. player.Name .. " with rank: " .. rank)
                     serverHop()
@@ -802,6 +807,9 @@ local PageFarm = MainUI.AddPage("Farm", false)
     
 local FarmToggle = PageFarm.AddToggle("Auto Farm (Set Aura Hit Mode)", false, function(value)
     Toggles.Farm = value
+    if not value then
+        Player.Character:MoveTo(Vector3.new(Player.Character.HumanoidRootPart.Position.x, groundLevel+20, Player.Character.HumanoidRootPart.Position.z))
+    end
 end)
 
 local SliderFarmDistance = PageFarm.AddSlider("Farm Distance", {Min = 0, Max = 15, Def = FarmSettings.FarmDistance}, function(value)
