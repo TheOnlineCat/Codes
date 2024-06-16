@@ -824,7 +824,7 @@ local PageFarm = MainUI.AddPage("Farm", false)
 local FarmToggle = PageFarm.AddToggle("Auto Farm (Set Aura Hit Mode)", Toggles.Farm, function(value)
     Toggles.Farm = value
     Save("Toggles", Toggles)
-    if not value then
+    if not value and FarmSettings.Hidden then
         pcall(function()
             Workspace.Gravity = 196.2
             Player.Character:MoveTo(
@@ -835,16 +835,15 @@ local FarmToggle = PageFarm.AddToggle("Auto Farm (Set Aura Hit Mode)", Toggles.F
                 )
             )
         end)
-        
     end
 end)
 
-local SliderFarmDistance = PageFarm.AddSlider("Farm Distance", {Min = 0, Max = 50, Def = FarmSettings.FarmDistance}, function(value)
+local SliderFarmDistance = PageFarm.AddSlider("Farm Distance", {Min = 0, Max = 100, Def = FarmSettings.FarmDistance}, function(value)
     FarmSettings.FarmDistance = value
     Save("FarmSettings", FarmSettings)
 end)
 
-local SliderAuraDistance = PageFarm.AddSlider("Farm Aura Distance", {Min = 0, Max = 70, Def = FarmSettings.AuraDistance}, function(value)
+local SliderAuraDistance = PageFarm.AddSlider("Farm Aura Distance", {Min = 0, Max = 120, Def = FarmSettings.AuraDistance}, function(value)
     FarmSettings.AuraDistance = value
     Save("FarmSettings", FarmSettings)
 end)
@@ -862,9 +861,21 @@ end)
 local TpToggle = PageFarm.AddToggle("Hidden Farm", FarmSettings.Hidden, function(value)
     FarmSettings.Hidden = value
     Save("FarmSettings", FarmSettings)
+    if not value and Toggles.Farm then
+        pcall(function()
+            Workspace.Gravity = 196.2
+            Player.Character:MoveTo(
+                Vector3.new(
+                    Player.Character.HumanoidRootPart.Position.x, 
+                    Player.Character.HumanoidRootPart.Position.y + FarmSettings.FarmDistance, 
+                    Player.Character.HumanoidRootPart.Position.z
+                )
+            )
+        end)
+    end
 end)
 
-local Test = PageFarm.AddToggle("Test213 Farm", FarmSettings.Test, function(value)
+local Test = PageFarm.AddToggle("Test69 Farm", FarmSettings.Test, function(value)
     FarmSettings.Test = value
     Save("FarmSettings", FarmSettings)
 end)
