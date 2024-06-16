@@ -195,7 +195,7 @@ end
 
 local function getNearestObstacles(target, barrierOnly)
     local LowestDistance = math.huge
-    local ActualTarget
+    local obstacle
     for i, v in ipairs(Workspace:GetChildren()) do
         if v:IsA("Model") and (not(table.find(MobList, v.Name)) or v.Name == "Barrier") and v.Name ~= Player.Name then
             local Enemy = v:FindFirstChildWhichIsA("Humanoid")
@@ -206,12 +206,12 @@ local function getNearestObstacles(target, barrierOnly)
                 local CurrentDistance = (target:GetModelCFrame().Position - v:GetModelCFrame().Position).Magnitude
                 if CurrentDistance < LowestDistance then
                     LowestDistance = CurrentDistance
-                    Target = v
+                    obstacle = v
                 end
             end
         end
     end
-    return ActualTarget
+    return obstacle
 end
 
 
@@ -410,7 +410,7 @@ local function main()
     spawn(function()
         while wait() do
 
-            if BossFight or Toggles.Farm then
+            if (BossFight or Toggles.Farm) and Hidden then
                 Workspace.Gravity = 0
                 pcall(function()
                     Player.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
@@ -480,12 +480,6 @@ local function main()
                             if FarmSettings.Hidden then
                                 local tpPosition = Vector3.new(enemy:GetModelCFrame().Position.x, enemy:GetModelCFrame().Position.y - FarmSettings.FarmDistance, enemy:GetModelCFrame().Position.z)
                                 Player.Character:MoveTo(tpPosition)
-                            elseif FarmSettings.Test then
-                                local enemyHp = enemy:FindFirstChildWhichIsA("Humanoid").Health
-                                hit(enemy)
-                                if (enemyHp - enemy:FindFirstChildWhichIsA("Humanoid").Health) == 0 then
-                                    enemyBarrier = true
-                                end
                             else
                                 if currentDistance >= 300 then
                                     Player.Character:MoveTo(getOffsetVector(enemy) + Vector3.new(0, 3, 0))
@@ -494,9 +488,12 @@ local function main()
                                 end
                             end
     
-                            local enemyPlayer = getNearestObstacles(Player, false)
-                            if FarmSettings.KillPlayers and enemyPlayer and getDistanceTo(enemyPlayer) < AuraSettings.KillDistance then
-                                hit(obstacle)
+                            
+                            if FarmSettings.KillPlayers then
+                                local enemyPlayer = getNearestObstacles(Player, false)
+                                if(enemyPlayer and enemyPlayer.Name ~= "Barrier" and getDistanceTo(enemyPlayer) < AuraSettings.KillDistance ) then
+                                    hit(obstacle)
+                                end
                             end
                         end
     
@@ -573,10 +570,8 @@ game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(funct
             spawn(function()
                 wait(1)
                 local rolledAbilities = getRolledAbilities()
-                local found = false
                 for _i, ability in rolledAbilities do     
                     if (ability.potential >= RollSettings.Threshold) or AbilityDict[ability.name] == nil or (ability.potential >= AbilityDict[ability.name] and AbilityDict[ability.name] ~= 0) then
-                        found = true
 
                         Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 0.5
                         Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = true
@@ -591,20 +586,15 @@ game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(funct
                     end
                 end
     
-                if found then
-                    wait(1)  
-                end
                 
                 repeat
+                wait(1)
                 clickEndRoll()
-                wait(0.3)
                 until not RerollPath.Rerolls.visible or not Toggles.AutoRoll
 
-                print("rolling again")
-        
                 repeat
+                    wait(0.5)
                     Rep.Reroll:InvokeServer(nil, nil, true)
-                    wait(2)
                 until RerollPath.Rerolls.visible or not Toggles.AutoRoll
             end)
         end
@@ -640,7 +630,7 @@ local function massUpgrade(type, ignoreUpgraded, threshold)
             end
         end
 
-        repeat
+        while #validMaterials >= 4 do
             local args = {
                 [1] = type,
                 [2] = {
@@ -651,18 +641,7 @@ local function massUpgrade(type, ignoreUpgraded, threshold)
                 }
             }
             Rep.UpgradeItem:InvokeServer(unpack(args))
-        until #validMaterials < 4
-
-        while #validMaterials > 0 do
-            local args = {
-                [1] = type,
-                [2] = {
-                    [1] = table.remove(validMaterials)
-                }
-            }
-            Rep.UpgradeItem:InvokeServer(unpack(args))
         end
-
     end)
 end
 
@@ -674,6 +653,7 @@ local function autoLuck()
             local data = getUserData()
 
             if(data == nil) then
+                wait()
                 continue
             end
 
