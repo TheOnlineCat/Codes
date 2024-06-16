@@ -360,14 +360,14 @@ end
 
 
 local function BossFarm()
-    local Boss = LocateBoss()
-
-    if (FarmSettings.Hidden) then
-        local target = Vector3.new(Boss:GetModelCFrame().Position.x, groundLevel, Boss:GetModelCFrame().Position.z)
-        Player.Character:MoveTo(target)
-    end
-
     pcall(function()
+        local Boss = LocateBoss()
+
+        if (FarmSettings.Hidden) then
+            local target = Vector3.new(Boss:GetModelCFrame().Position.x, groundLevel, Boss:GetModelCFrame().Position.z)
+            Player.Character:MoveTo(target)
+        end
+
         while Boss.Humanoid.Health > 0 and Toggles.FarmBoss and Boss do
             if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
                 activateAbility()
@@ -389,6 +389,7 @@ local function BossFarm()
             end
         end
     end)
+    
     BossFight = false
 end
 
@@ -1100,7 +1101,14 @@ local AttackBarrier = PageMisc.AddToggle("Damage Arlo Boss Barrier", false, func
 end)
 
 local King = PageMisc.AddToggle("Relinquish King", false, function(value)
-    Toggles.BreakBarrier = value
+    Toggles.RelinquishCrown = value
+    if value then
+        local args = {
+            [1] = game:GetService("Players"):WaitForChild("jabberman7000")
+        }
+        
+        game:GetService("ReplicatedStorage"):WaitForChild("SurrenderCrown"):FireServer(unpack(args))
+    end
 end)
 
 local Reset = PageMisc.AddButton("Reset Character", function()
