@@ -492,7 +492,7 @@ local function main()
                             if FarmSettings.KillPlayers then
                                 local enemyPlayer = getNearestObstacles(Player, false)
                                 if(enemyPlayer and enemyPlayer.Name ~= "Barrier" and getDistanceTo(enemyPlayer) < AuraSettings.KillDistance ) then
-                                    hit(obstacle)
+                                    hit(enemyPlayer)
                                 end
                             end
                         end
@@ -850,7 +850,7 @@ local TpToggle = PageFarm.AddToggle("Hidden Farm", FarmSettings.Hidden, function
     Save("FarmSettings", FarmSettings)
 end)
 
-local Test = PageFarm.AddToggle("Test Farm", FarmSettings.Test, function(value)
+local Test = PageFarm.AddToggle("Test123 Farm", FarmSettings.Test, function(value)
     FarmSettings.Test = value
     Save("FarmSettings", FarmSettings)
 end)
