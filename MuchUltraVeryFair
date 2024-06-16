@@ -370,7 +370,7 @@ local function BossFarm()
                         local target = Vector3.new(Boss:GetModelCFrame().Position.x, groundLevel - FarmSettings.FarmDistance, Boss:GetModelCFrame().Position.z)
                         Player.Character:MoveTo(target)
                     end
-                    
+
                     while Boss.Humanoid.Health > 0 and Toggles.FarmBoss and Boss do
                         if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
                             activateAbility()
@@ -479,6 +479,12 @@ local function main()
                             if FarmSettings.Hidden then
                                 local tpPosition = Vector3.new(enemy:GetModelCFrame().Position.x, groundLevel - FarmSettings.FarmDistance, enemy:GetModelCFrame().Position.z)
                                 Player.Character:MoveTo(tpPosition)
+                            elseif FarmSettings.Test then
+                                local enemyHp = enemy:FindFirstChildWhichIsA("Humanoid").Health
+                                hit(enemy)
+                                if (enemyHp - enemy:FindFirstChildWhichIsA("Humanoid").Health) == 0 then
+                                    enemyBarrier = true
+                                end
                             else
                                 if currentDistance >= 300 then
                                     Player.Character:MoveTo(getOffsetVector(enemy) + Vector3.new(0, 3, 0))
@@ -851,6 +857,11 @@ end)
 
 local TpToggle = PageFarm.AddToggle("Hidden Farm", FarmSettings.Hidden, function(value)
     FarmSettings.Hidden = value
+    Save("FarmSettings", FarmSettings)
+end)
+
+local Test = PageFarm.AddToggle("Test Farm", FarmSettings.Test, function(value)
+    FarmSettings.Test = value
     Save("FarmSettings", FarmSettings)
 end)
 
