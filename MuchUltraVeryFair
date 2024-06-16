@@ -7,7 +7,8 @@ getgenv().Toggles = {
     MobAura = false,
     AutoRoll = false,
     FarmBoss = false,
-    BreakBarrier = false
+    BreakBarrier = false,
+    Hidden = false
 }
 
 getgenv().FarmSettings = {
@@ -50,6 +51,7 @@ local TeleportService = Get.TeleportService
 
 local groupId = 15508585
 local privilegeThreshold = 150
+local groundLevel = 270
 
 
 local function Save(File, Table)
@@ -146,8 +148,12 @@ local function check(e)
     end
 end
 
-local function getDistanceTo(object) 
-    return (Player.Character.HumanoidRootPart.Position - object:GetModelCFrame().Position).Magnitude
+local function getDistanceTo(object, yOverride) 
+    local objectPosition = object:GetModelCFrame().Position
+    if(yOverride) then
+        objectPosition += yOverride
+    end
+    return (Player.Character.HumanoidRootPart.Position - objectPosition).Magnitude
 end
 
 local function getNearestMobs(Type)
@@ -182,9 +188,9 @@ local function getNearestMobs(Type)
     return Target
 end
 
-local function getNearestObstacles(barrierOnly)
+local function getNearestObstacles(target, barrierOnly)
     local LowestDistance = math.huge
-    local Target
+    local ActualTarget
     for i, v in ipairs(Workspace:GetChildren()) do
         if v:IsA("Model") and (not(table.find(MobList, v.Name)) or v.Name == "Barrier") and v.Name ~= Player.Name then
             local Enemy = v:FindFirstChildWhichIsA("Humanoid")
@@ -192,7 +198,7 @@ local function getNearestObstacles(barrierOnly)
                 continue
             end
             if Enemy and Enemy.Health ~= 0 then
-                local CurrentDistance = getDistanceTo(v)
+                local CurrentDistance = (target:GetModelCFrame().Position - v:GetModelCFrame().Position).Magnitude
                 if CurrentDistance < LowestDistance then
                     LowestDistance = CurrentDistance
                     Target = v
@@ -200,7 +206,7 @@ local function getNearestObstacles(barrierOnly)
             end
         end
     end
-    return Target
+    return ActualTarget
 end
 
 
@@ -328,18 +334,27 @@ local function getOffsetVector(enemy)
     return NewPosition
 end
 
-local BossFight = false
 
 
-
-local function farm()
+local function main()
     spawn(function()
-        local killedBoss = true;
+        local BossFight = false
+
         while wait() do
             if not BossFight then
+
+                if Toggles.FarmBoss and Player.PlayerGui.Boss.Enabled == true then
+                    Player.PlayerGui.Reroll.bosstp.Visible = false
+                    BossFight = true
+                    BossFight = spawn(BossFight)
+                end
+
                 if Toggles.Farm then
-                    
                     pcall(function()
+                        if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
+                            activateAbility()
+                        end
+
                         if not Player.PlayerGui.MainClient.Quest.visible then
                             quest(FarmSettings.SelectedQuest)
                         else
@@ -350,55 +365,67 @@ local function farm()
                         end
             
 
-                        if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
-                            activateAbility()
-                        end
-
                         local enemyType = getQuestMobs(FarmSettings.SelectedQuest)
                         local enemy = getNearestMobs(enemyType)
-                        local currentDistance = getDistanceTo(enemy)
+                        
+                        local currentDistance = 0
+
+                        if FarmSettings.Hidden then
+                            currentDistance = getDistanceTo(enemy, groundLevel)
+                        else
+                            currentDistance = getDistanceTo(enemy)
+                        end
+                        
 
                         local obstacle
                         local enemyBarrier = false
 
-                        obstacle = getNearestObstacles(false)
-                        if obstacle.Name ~= "Barrier" and not (getDistanceTo(obstacle) < AuraSettings.KillDistance) then
-                            enemyBarrier = false
+                        obstacle = getNearestObstacles(enemy, false)
+
+                        if obstacle.Name ~= "Barrier" then
+                            if (getDistanceTo(obstacle) >= AuraSettings.KillDistance) then
+                                enemyBarrier = false
+                            end
                         end
+
                         if currentDistance < FarmSettings.AuraDistance then
                             local enemyHp = enemy:FindFirstChildWhichIsA("Humanoid").Health
                             hit(enemy)
                             if (enemyHp - enemy:FindFirstChildWhichIsA("Humanoid").Health) == 0 then
                                 enemyBarrier = true
                             end
-                        elseif FarmSettings.KillPlayers and obstacle and getDistanceTo(obstacle) < AuraSettings.KillDistance then
-                            hit(obstacle)
                         else
-                            if currentDistance >= 300 then
-                                Player.Character:MoveTo(getOffsetVector(enemy) + Vector3.new(0, 3, 0))
+                            if FarmSettings.Hidden then
+                                local tpPosition = enemy:GetModelCFrame().Position
+                                tpPosition.y = groundLevel
+                                Player.Character:MoveTo(tpPosition)
                             else
-                                Player.Character.Humanoid:MoveTo(getOffsetVector(enemy))
+                                if currentDistance >= 300 then
+                                    Player.Character:MoveTo(getOffsetVector(enemy) + Vector3.new(0, 3, 0))
+                                else
+                                    Player.Character.Humanoid:MoveTo(getOffsetVector(enemy))
+                                end
                             end
-                            killedBoss = true
+
+                            if FarmSettings.KillPlayers and obstacle and getDistanceTo(obstacle) < AuraSettings.KillDistance then
+                                hit(obstacle)
+                            end
                         end
+
                         if obstacle.Name == "Barrier" and currentDistance < FarmSettings.AuraDistance and enemyBarrier then
                             hit(obstacle)
                         end
-                    end
-                    )
+                    end)
 
-                elseif (Toggles.KillAura or Toggles.MobAura) and not Toggles.Farm and killedBoss then
-
+                elseif (Toggles.KillAura or Toggles.MobAura) and not Toggles.Farm then
                     pcall(function()
                         local enemy = getNearestMobs()
                         if getDistanceTo(enemy) < AuraSettings.KillDistance then
                             hit(enemy)
                         end
                     end)
-
                 end
-            else
-                killedBoss = false
+
             end
         end
     end)
@@ -428,44 +455,34 @@ end
 
 
 local function BossFarm()
-    spawn(function()
-        while wait() and Toggles.FarmBoss do
-            pcall(function()
-                if Player.PlayerGui.Boss.Enabled == true then
-                    BossFight = true
-                    local Boss = LocateBoss()
-                    wait(0.1)
-                    for i,v in pairs(getconnections(Player.PlayerGui.Reroll.bosstp.Yes.MouseButton1Click)) do
-                        v.Function()
-                    end
-                    
-                    pcall(function()
-                        while Boss.Humanoid.Health > 0 and Toggles.FarmBoss and Boss do
-                            Boss = LocateBoss()
-                            if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
-                                activateAbility()
-                            end
+    local Boss = LocateBoss()
 
-                            if getDistanceTo(Boss)  < AuraSettings.KillDistance then
-                                hit(Boss)
-                            else 
-                                Player.Character.Humanoid:MoveTo(getOffsetVector(Boss))
-                                wait(0.1)
-                            end
-                            if Toggles.BreakBarrier then
-                                local Barrier = getNearestObstacles(true)
-                                if getDistanceTo(Barrier) < AuraSettings.KillDistance  then
-                                    hit(Barrier)
-                                end
-                            end
-                        end
-                    end)
-                    BossFight = false
+    pcall(function()
+        while Boss.Humanoid.Health > 0 and Toggles.FarmBoss and Boss do
+            Boss = LocateBoss()
+            if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
+                activateAbility()
+            end
+
+            if getDistanceTo(Boss)  < AuraSettings.KillDistance then
+                hit(Boss)
+            else 
+                local target = getOffsetVector(Boss)
+                if (FarmSettings.Hidden) then
+                    target.y = groundLevel
                 end
+                Player.Character.Humanoid:MoveTo(getOffsetVector(Boss))
                 wait(0.1)
-            end)
+            end
+            if Toggles.BreakBarrier then
+                local Barrier = getNearestObstacles(true)
+                if getDistanceTo(Barrier) < AuraSettings.KillDistance  then
+                    hit(Barrier)
+                end
+            end
         end
     end)
+    return false
 end
 
 
@@ -767,7 +784,7 @@ end)
 
 spawn(checkCurrentMods)
 spawn(autoLuck)
-farm()
+main()
 
 
 
@@ -804,6 +821,11 @@ local BossToggle = PageFarm.AddToggle("Auto Boss Kill", false, function(value)
     if value then
         BossFarm()
     end
+end)
+
+local TpToggle = PageFarm.AddToggle("Hidden Farm", FarmSettings.KillPlayers, function(value)
+    FarmSettings.Hidden = value
+    Save("FarmSettings", FarmSettings)
 end)
 
 local QuestSelect = PageFarm.AddDropdown("Quest Select", {
@@ -877,6 +899,13 @@ end)
 
 local ToggleAutoRoll = PageRoll.AddToggle("Hide GUI when Auto", false, function(value)
     RollSettings.Hide = value
+    Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = not value
+    Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = not value
+    if(value) then
+        Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 1
+    else
+        Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 0.5
+    end
 end)
 
 
