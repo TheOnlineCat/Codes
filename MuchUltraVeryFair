@@ -1,4 +1,9 @@
 --thanks to DekuDimz and Anyx, used some of their script for some help 
+if game.PlaceId ~= 14339696091 then
+    return nil
+end
+
+
 getgenv().Get = setmetatable({}, {__index = function(Self, Idx) return game:GetService(Idx) end})
 
 getgenv().Toggles = {
