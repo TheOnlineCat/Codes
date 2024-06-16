@@ -801,8 +801,38 @@ Players.PlayerAdded:Connect(function(player)
     
 end)
 
+spawn(function()
+    while wait() and Toggles.AutoRollRelinquishCrown do
+        local king = Workspace:WaitForChild(Player.Name).Head:FindFirstChild("King")
+        local jack = Workspace:WaitForChild(Player.Name).Head:FindFirstChild("Jack")
+        if (jack) then
+            serverHop()
+        end
+        
+        if king then
+            for _, player in Players:GetChildren() do
+                if player == Player then
+                    continue
+                end
 
-for i, v in getconnections(game:GetService("Players").LocalPlayer.PlayerGui.TitleScreen.Play.MouseButton1Click) do
+                local args = {
+                    [1] = player
+                }
+                
+                game:GetService("ReplicatedStorage"):WaitForChild("SurrenderCrown"):FireServer(unpack(args))
+
+                if not king then
+                    print("passed king")
+                    break
+                end
+            end
+        end
+    end
+end)
+
+
+
+for i, v in getconnections(Player.PlayerGui.TitleScreen.Play.MouseButton1Click) do
     v.Function()
 end
 
@@ -876,7 +906,7 @@ local TpToggle = PageFarm.AddToggle("Hidden Farm", FarmSettings.Hidden, function
     end
 end)
 
-local Test = PageFarm.AddToggle("Test69 Farm", FarmSettings.Test, function(value)
+local Test = PageFarm.AddToggle("Test69test Farm", FarmSettings.Test, function(value)
     FarmSettings.Test = value
     Save("FarmSettings", FarmSettings)
 end)
@@ -1151,11 +1181,7 @@ end)
 local King = PageMisc.AddToggle("Relinquish King", Toggles.RelinquishCrown, function(value)
     Toggles.RelinquishCrown = value
     if value then
-        local args = {
-            [1] = game:GetService("Players"):WaitForChild("jabberman7000")
-        }
         
-        game:GetService("ReplicatedStorage"):WaitForChild("SurrenderCrown"):FireServer(unpack(args))
     end
 end)
 
