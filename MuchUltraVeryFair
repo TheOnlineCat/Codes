@@ -410,7 +410,7 @@ local function main()
     spawn(function()
         while wait() do
 
-            if (BossFight or Toggles.Farm) and Hidden then
+            if (BossFight or Toggles.Farm) and FarmSettings.Hidden then
                 Workspace.Gravity = 0
                 pcall(function()
                     Player.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
@@ -850,7 +850,7 @@ local TpToggle = PageFarm.AddToggle("Hidden Farm", FarmSettings.Hidden, function
     Save("FarmSettings", FarmSettings)
 end)
 
-local Test = PageFarm.AddToggle("Test123 Farm", FarmSettings.Test, function(value)
+local Test = PageFarm.AddToggle("Test321 Farm", FarmSettings.Test, function(value)
     FarmSettings.Test = value
     Save("FarmSettings", FarmSettings)
 end)
