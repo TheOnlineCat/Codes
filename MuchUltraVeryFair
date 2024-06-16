@@ -51,7 +51,7 @@ local TeleportService = Get.TeleportService
 
 local groupId = 15508585
 local privilegeThreshold = 150
-local groundLevel = 295
+local groundLevel = 285
 
 
 local function Save(File, Table)
@@ -405,7 +405,7 @@ local function main()
         while wait() do
             if not BossFight then
 
-                if Toggles.FarmBoss and Player.PlayerGui.Boss.Enabled == true then
+                if Toggles.FarmBoss and Player.PlayerGui.Boss.Enabled == true and Player.PlayerGui.Reroll.bosstp.Visible then
                     if FarmSettings.Hidden then
                         Player.PlayerGui.Reroll.bosstp.Visible = false
                     else
@@ -839,7 +839,7 @@ local BossToggle = PageFarm.AddToggle("Auto Boss Kill", false, function(value)
     end
 end)
 
-local TpToggle = PageFarm.AddToggle("Hidden Farm", FarmSettings.KillPlayers, function(value)
+local TpToggle = PageFarm.AddToggle("Hidden Farm", FarmSettings.Hidden, function(value)
     FarmSettings.Hidden = value
     Save("FarmSettings", FarmSettings)
 end)
@@ -913,10 +913,11 @@ local ToggleAutoRoll = PageRoll.AddToggle("Auto Roll Ability", false, function(v
     end
 end)
 
-local ToggleAutoRoll = PageRoll.AddToggle("Hide GUI when Auto", false, function(value)
+local ToggleAutoRoll = PageRoll.AddToggle("Hide GUI when Auto", RollSettings.Hide, function(value)
     RollSettings.Hide = value
     Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = not value
     Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = not value
+    Save("RollSettings", RollSettings)
     if(value) then
         Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 1
     else
