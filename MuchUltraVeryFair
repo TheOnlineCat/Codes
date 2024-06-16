@@ -360,7 +360,7 @@ local function BossFarm()
     local Boss = LocateBoss()
 
     if (FarmSettings.Hidden) then
-        local target = Vector3.new(Boss:GetModelCFrame().Position.x, groundLevel, Boss:GetModelCFrame().Position.x)
+        local target = Vector3.new(Boss:GetModelCFrame().Position.x, groundLevel, Boss:GetModelCFrame().Position.z)
         Player.Character:MoveTo(target)
     end
 
@@ -389,10 +389,10 @@ local function BossFarm()
     return false
 end
 
+local BossFight = false
+
 local function main()
     spawn(function()
-        local BossFight = false
-
         while wait() do
             if not BossFight then
 
@@ -412,64 +412,63 @@ local function main()
 
 
                 if Toggles.Farm then
-                    pcall(function()
-                        if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
-                            activateAbility()
-                        end
+                
+                    if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
+                        activateAbility()
+                    end
 
-                        if not Player.PlayerGui.MainClient.Quest.visible then
-                            quest(FarmSettings.SelectedQuest)
+                    if not Player.PlayerGui.MainClient.Quest.visible then
+                        quest(FarmSettings.SelectedQuest)
+                    else
+                        local questCount = Player.PlayerGui.MainClient.Quest.Folder.Objective.progress.text:split("/")
+                        if questCount[1] == questCount[2] then
+                            quest("Completed")
+                        end
+                    end
+        
+
+                    local enemyType = getQuestMobs(FarmSettings.SelectedQuest)
+                    local enemy = getNearestMobs(enemyType)
+                    
+                    local currentDistance = (FarmSettings.Hidden and getDistanceTo(enemy, groundLevel) or getDistanceTo(enemy))
+
+                    local obstacle
+                    local enemyBarrier = false
+
+                    obstacle = getNearestObstacles(enemy, false)
+
+                    if obstacle.Name ~= "Barrier" then
+                        if (getDistanceTo(obstacle) >= AuraSettings.KillDistance) then
+                            enemyBarrier = false
+                        end
+                    end
+
+                    if currentDistance < FarmSettings.AuraDistance then
+                        local enemyHp = enemy:FindFirstChildWhichIsA("Humanoid").Health
+                        hit(enemy)
+                        if (enemyHp - enemy:FindFirstChildWhichIsA("Humanoid").Health) == 0 then
+                            enemyBarrier = true
+                        end
+                    else
+                        if FarmSettings.Hidden then
+                            local tpPosition = Vector3.new(enemy:GetModelCFrame().Position.x, groundLevel, enemy:GetModelCFrame().Position.z)
+                            Player.Character:MoveTo(tpPosition)
                         else
-                            local questCount = Player.PlayerGui.MainClient.Quest.Folder.Objective.progress.text:split("/")
-                            if questCount[1] == questCount[2] then
-                                quest("Completed")
-                            end
-                        end
-            
-
-                        local enemyType = getQuestMobs(FarmSettings.SelectedQuest)
-                        local enemy = getNearestMobs(enemyType)
-                        
-                        local currentDistance = (FarmSettings.Hidden and getDistanceTo(enemy, groundLevel) or getDistanceTo(enemy))
-
-                        local obstacle
-                        local enemyBarrier = false
-
-                        obstacle = getNearestObstacles(enemy, false)
-
-                        if obstacle.Name ~= "Barrier" then
-                            if (getDistanceTo(obstacle) >= AuraSettings.KillDistance) then
-                                enemyBarrier = false
-                            end
-                        end
-
-                        if currentDistance < FarmSettings.AuraDistance then
-                            local enemyHp = enemy:FindFirstChildWhichIsA("Humanoid").Health
-                            hit(enemy)
-                            if (enemyHp - enemy:FindFirstChildWhichIsA("Humanoid").Health) == 0 then
-                                enemyBarrier = true
-                            end
-                        else
-                            if FarmSettings.Hidden then
-                                local tpPosition = Vector3.new(enemy:GetModelCFrame().Position.x, groundLevel, enemy:GetModelCFrame().Position.z)
-                                Player.Character:MoveTo(tpPosition)
+                            if currentDistance >= 300 then
+                                Player.Character:MoveTo(getOffsetVector(enemy) + Vector3.new(0, 3, 0))
                             else
-                                if currentDistance >= 300 then
-                                    Player.Character:MoveTo(getOffsetVector(enemy) + Vector3.new(0, 3, 0))
-                                else
-                                    Player.Character.Humanoid:MoveTo(getOffsetVector(enemy))
-                                end
-                            end
-
-                            if FarmSettings.KillPlayers and obstacle and getDistanceTo(obstacle) < AuraSettings.KillDistance then
-                                hit(obstacle)
+                                Player.Character.Humanoid:MoveTo(getOffsetVector(enemy))
                             end
                         end
 
-                        if obstacle.Name == "Barrier" and currentDistance < FarmSettings.AuraDistance and enemyBarrier then
+                        if FarmSettings.KillPlayers and obstacle and getDistanceTo(obstacle) < AuraSettings.KillDistance then
                             hit(obstacle)
                         end
-                    end)
+                    end
+
+                    if obstacle.Name == "Barrier" and currentDistance < FarmSettings.AuraDistance and enemyBarrier then
+                        hit(obstacle)
+                    end
 
                 elseif (Toggles.KillAura or Toggles.MobAura) and not Toggles.Farm then
                     pcall(function()
@@ -757,7 +756,7 @@ end)
 
 RunService.Stepped:Connect(
    function()
-       if Toggles.Farm then
+       if Toggles.Farm or BossFight then
            for i, v in pairs(Player.Character:GetChildren()) do
                if v:IsA("BasePart") then
                    v.CanCollide = false
