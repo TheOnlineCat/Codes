@@ -492,12 +492,6 @@ local function main()
 end
 
 
-
-
-
-
-
-
 local function getRolledAbilities()
     local abilityResults = {}
     for _i, ability in RerollPath.Rerolls.ScrollingFrame:GetChildren() do
