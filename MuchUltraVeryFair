@@ -437,11 +437,12 @@ local function main()
 
                     obstacle = getNearestObstacles(enemy, false)
 
-                    if obstacle.Name ~= "Barrier" then
+                    if obstacle and obstacle.Name ~= "Barrier" then
                         if (getDistanceTo(obstacle) >= AuraSettings.KillDistance) then
                             enemyBarrier = false
                         end
                     end
+                
 
                     if currentDistance < FarmSettings.AuraDistance then
                         local enemyHp = enemy:FindFirstChildWhichIsA("Humanoid").Health
@@ -466,7 +467,7 @@ local function main()
                         end
                     end
 
-                    if obstacle.Name == "Barrier" and currentDistance < FarmSettings.AuraDistance and enemyBarrier then
+                    if obstacle and obstacle.Name == "Barrier" and currentDistance < FarmSettings.AuraDistance and enemyBarrier then
                         hit(obstacle)
                     end
 
@@ -731,7 +732,7 @@ local function checkCurrentMods()
     if FarmSettings.LeaveOnMod then
         for index, player in Players:GetChildren() do
             spawn(function()
-                local rank = getUserGroupRank(player.userId, groupId)
+                local rank = pcall(getUserGroupRank, player.userId, groupId)
                 if rank and rank >= privilegeThreshold then
                     print("Privileged member is here: " .. player.Name .. " with rank: " .. rank)
                     serverHop()
