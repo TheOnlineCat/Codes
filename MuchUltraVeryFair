@@ -794,7 +794,9 @@ Players.PlayerAdded:Connect(function(player)
 end)
 
 
-
+for i, v in getconnections(game:GetService("Players").LocalPlayer.PlayerGui.TitleScreen.Play.MouseButton1Click) do
+    v.Function()
+end
 
 spawn(checkCurrentMods)
 spawn(autoLuck)
