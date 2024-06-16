@@ -56,7 +56,6 @@ local TeleportService = Get.TeleportService
 
 local groupId = 15508585
 local privilegeThreshold = 150
-local groundLevel = 285
 
 
 local function Save(File, Table)
@@ -370,7 +369,7 @@ local function BossFarm()
         local Boss = LocateBoss()
 
         if (FarmSettings.Hidden) then
-            local target = Vector3.new(Boss:GetModelCFrame().Position.x, groundLevel - FarmSettings.FarmDistance, Boss:GetModelCFrame().Position.z)
+            local target = Vector3.new(Boss:GetModelCFrame().Position.x, Boss:GetModelCFrame().Position.y - FarmSettings.FarmDistance, Boss:GetModelCFrame().Position.z)
             Player.Character:MoveTo(target)
         end
 
@@ -381,9 +380,9 @@ local function BossFarm()
 
             local currentDistance = 0
             if FarmSettings.Hidden then
-                getDistanceTo(Boss, groundLevel - FarmSettings.FarmDistance)
+                currentDistance = getDistanceTo(Boss, Boss:GetModelCFrame().Position.y - FarmSettings.FarmDistance)
             else
-                getDistanceTo(Boss)
+                currentDistance = getDistanceTo(Boss)
             end
             
             if currentDistance < AuraSettings.KillDistance then
@@ -401,7 +400,7 @@ local function BossFarm()
             end
         end
     end)
-    Player.Character:MoveTo(Vector3.new(Player.Character.HumanoidRootPart.Position.x, groundLevel, Player.Character.HumanoidRootPart.Position.z))
+    Player.Character:MoveTo(Vector3.new(Player.Character.HumanoidRootPart.Position.x, Player.Character.HumanoidRootPart.Position.y, Player.Character.HumanoidRootPart.Position.z))
     Workspace.Gravity = 196.2
     BossFight = false
 end
@@ -454,7 +453,7 @@ local function main()
                         
                         local currentDistance = 0
                         if FarmSettings.Hidden then
-                            currentDistance = getDistanceTo(enemy, groundLevel - FarmSettings.FarmDistance)
+                            currentDistance = getDistanceTo(enemy, enemy:GetModelCFrame().Position.y - FarmSettings.FarmDistance)
                         else
                             currentDistance = getDistanceTo(enemy)
                         end
@@ -479,7 +478,7 @@ local function main()
                             end
                         else
                             if FarmSettings.Hidden then
-                                local tpPosition = Vector3.new(enemy:GetModelCFrame().Position.x, groundLevel - FarmSettings.FarmDistance, enemy:GetModelCFrame().Position.z)
+                                local tpPosition = Vector3.new(enemy:GetModelCFrame().Position.x, enemy:GetModelCFrame().Position.y - FarmSettings.FarmDistance, enemy:GetModelCFrame().Position.z)
                                 Player.Character:MoveTo(tpPosition)
                             elseif FarmSettings.Test then
                                 local enemyHp = enemy:FindFirstChildWhichIsA("Humanoid").Health
@@ -838,7 +837,7 @@ local FarmToggle = PageFarm.AddToggle("Auto Farm (Set Aura Hit Mode)", Toggles.F
     Save("Toggles", Toggles)
     if not value then
         pcall(function()
-            Player.Character:MoveTo(Vector3.new(Player.Character.HumanoidRootPart.Position.x, groundLevel, Player.Character.HumanoidRootPart.Position.z))
+            Player.Character:MoveTo(Vector3.new(Player.Character.HumanoidRootPart.Position.x, Player.Character.HumanoidRootPart.Position.y, Player.Character.HumanoidRootPart.Position.z))
         end)
         Workspace.Gravity = 196.2
     end
