@@ -802,7 +802,11 @@ Players.PlayerAdded:Connect(function(player)
 end)
 
 spawn(function()
-    while wait() and Toggles.AutoRollRelinquishCrown do
+    while wait() do
+        if not Toggles.AutoRollRelinquishCrown then
+            continue
+        end
+
         local king = Workspace:WaitForChild(Player.Name).Head:FindFirstChild("King")
         local jack = Workspace:WaitForChild(Player.Name).Head:FindFirstChild("Jack")
         if (jack) then
@@ -906,7 +910,7 @@ local TpToggle = PageFarm.AddToggle("Hidden Farm", FarmSettings.Hidden, function
     end
 end)
 
-local Test = PageFarm.AddToggle("Test69test Farm", FarmSettings.Test, function(value)
+local Test = PageFarm.AddToggle("Test69 Farm", FarmSettings.Test, function(value)
     FarmSettings.Test = value
     Save("FarmSettings", FarmSettings)
 end)
