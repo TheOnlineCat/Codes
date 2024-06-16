@@ -361,7 +361,7 @@ end
 
 local function BossFarm()
     spawn(pcall(function()
-        while Toggles.FarmBoss do
+        while wait() and Toggles.FarmBoss do
             if BossFight then
                 local Boss = LocateBoss()
 
