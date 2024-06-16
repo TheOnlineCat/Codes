@@ -360,7 +360,7 @@ end
 
 
 local function BossFarm()
-    spawn(pcall(function()
+    spawn(function()
         while wait() and Toggles.FarmBoss do
             if BossFight then
                 local Boss = LocateBoss()
@@ -370,38 +370,40 @@ local function BossFarm()
                     Player.Character:MoveTo(target)
                 end
 
-                while Boss.Humanoid.Health > 0 and Toggles.FarmBoss and Boss do
-                    if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
-                        activateAbility()
-                    end
+                pcall(function()
+                    while Boss.Humanoid.Health > 0 and Toggles.FarmBoss and Boss do
+                        if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
+                            activateAbility()
+                        end
 
-                    local currentDistance = 0
-                    if FarmSettings.Hidden then
-                        getDistanceTo(Boss, groundLevel - FarmSettings.FarmDistance)
-                    else
-                        getDistanceTo(Boss)
-                    end
-                    
-                    if currentDistance < AuraSettings.KillDistance then
-                        hit(Boss)
-                    else 
-                        Player.Character.Humanoid:MoveTo(getOffsetVector(Boss))
-                        wait(0.1)
-                    end
+                        local currentDistance = 0
+                        if FarmSettings.Hidden then
+                            getDistanceTo(Boss, groundLevel - FarmSettings.FarmDistance)
+                        else
+                            getDistanceTo(Boss)
+                        end
+                        
+                        if currentDistance < AuraSettings.KillDistance then
+                            hit(Boss)
+                        else 
+                            Player.Character.Humanoid:MoveTo(getOffsetVector(Boss))
+                            wait(0.1)
+                        end
 
-                    if Toggles.BreakBarrier then
-                        local Barrier = getNearestObstacles(Boss, true)
-                        if getDistanceTo(Barrier) < AuraSettings.KillDistance  then
-                            hit(Barrier)
+                        if Toggles.BreakBarrier then
+                            local Barrier = getNearestObstacles(Boss, true)
+                            if getDistanceTo(Barrier) < AuraSettings.KillDistance  then
+                                hit(Barrier)
+                            end
                         end
                     end
-                end
+                end)
                 Player.Character:MoveTo(Vector3.new(Player.Character.HumanoidRootPart.Position.x, groundLevel, Player.Character.HumanoidRootPart.Position.z))
                 Workspace.Gravity = 196.2
                 BossFight = false
             end
         end
-    end))
+    end)
 end
 
 
