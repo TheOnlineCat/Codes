@@ -203,7 +203,12 @@ local function getNearestObstacles(target, barrierOnly)
                 continue
             end
             if Enemy and Enemy.Health ~= 0 then
-                local CurrentDistance = (target:GetModelCFrame().Position - v:GetModelCFrame().Position).Magnitude
+                local CurrentDistance = 0
+                if target ~= Player then
+                    CurrentDistance = (target:GetModelCFrame().Position - v:GetModelCFrame().Position).Magnitude
+                else
+                    CurrentDistance = getDistanceTo(v)
+                end
                 if CurrentDistance < LowestDistance then
                     LowestDistance = CurrentDistance
                     obstacle = v
@@ -821,9 +826,16 @@ local FarmToggle = PageFarm.AddToggle("Auto Farm (Set Aura Hit Mode)", Toggles.F
     Save("Toggles", Toggles)
     if not value then
         pcall(function()
-            Player.Character:MoveTo(Vector3.new(Player.Character.HumanoidRootPart.Position.x, Player.Character.HumanoidRootPart.Position.y, Player.Character.HumanoidRootPart.Position.z))
+            Workspace.Gravity = 196.2
+            Player.Character:MoveTo(
+                Vector3.new(
+                    Player.Character.HumanoidRootPart.Position.x, 
+                    Player.Character.HumanoidRootPart.Position.y + FarmSettings.FarmDistance, 
+                    Player.Character.HumanoidRootPart.Position.z
+                )
+            )
         end)
-        Workspace.Gravity = 196.2
+        
     end
 end)
 
@@ -852,7 +864,7 @@ local TpToggle = PageFarm.AddToggle("Hidden Farm", FarmSettings.Hidden, function
     Save("FarmSettings", FarmSettings)
 end)
 
-local Test = PageFarm.AddToggle("Test12 Farm", FarmSettings.Test, function(value)
+local Test = PageFarm.AddToggle("Test213 Farm", FarmSettings.Test, function(value)
     FarmSettings.Test = value
     Save("FarmSettings", FarmSettings)
 end)
