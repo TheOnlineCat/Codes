@@ -51,7 +51,7 @@ local TeleportService = Get.TeleportService
 
 local groupId = 15508585
 local privilegeThreshold = 150
-local groundLevel = 270
+local groundLevel = 295
 
 
 local function Save(File, Table)
@@ -364,7 +364,7 @@ local function BossFarm()
         local Boss = LocateBoss()
 
         if (FarmSettings.Hidden) then
-            local target = Vector3.new(Boss:GetModelCFrame().Position.x, groundLevel, Boss:GetModelCFrame().Position.z)
+            local target = Vector3.new(Boss:GetModelCFrame().Position.x, groundLevel - FarmSettings.FarmDistance, Boss:GetModelCFrame().Position.z)
             Player.Character:MoveTo(target)
         end
 
@@ -373,14 +373,20 @@ local function BossFarm()
                 activateAbility()
             end
 
-            local currentDistance = (FarmSettings.Hidden and getDistanceTo(Boss, groundLevel) or getDistanceTo(Boss))
+            local currentDistance = 0
+            if FarmSettings.Hidden then
+                getDistanceTo(Boss, groundLevel - FarmSettings.FarmDistance)
+            else
+                getDistanceTo(Boss)
+            end
             
-            if currentDistance  < AuraSettings.KillDistance then
+            if currentDistance < AuraSettings.KillDistance then
                 hit(Boss)
             else 
                 Player.Character.Humanoid:MoveTo(getOffsetVector(Boss))
                 wait(0.1)
             end
+
             if Toggles.BreakBarrier then
                 local Barrier = getNearestObstacles(Boss, true)
                 if getDistanceTo(Barrier) < AuraSettings.KillDistance  then
@@ -427,17 +433,19 @@ local function main()
                                 quest("Completed")
                             end
                         end
-    
-                        if FarmSettings.Hidden then
-                            Workspace.Gravity = 0
-                            Player.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                        end
             
-    
                         local enemyType = getQuestMobs(FarmSettings.SelectedQuest)
                         local enemy = getNearestMobs(enemyType)
                         
-                        local currentDistance = (FarmSettings.Hidden and getDistanceTo(enemy, groundLevel) or getDistanceTo(enemy))
+                        local currentDistance = 0
+                        if FarmSettings.Hidden then
+                            Workspace.Gravity = 0
+                            Player.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+
+                            currentDistance = getDistanceTo(enemy, groundLevel - FarmSettings.FarmDistance)
+                        else
+                            currentDistance = getDistanceTo(enemy)
+                        end
     
                         local obstacle
                         local enemyBarrier = false
@@ -459,7 +467,7 @@ local function main()
                             end
                         else
                             if FarmSettings.Hidden then
-                                local tpPosition = Vector3.new(enemy:GetModelCFrame().Position.x, groundLevel, enemy:GetModelCFrame().Position.z)
+                                local tpPosition = Vector3.new(enemy:GetModelCFrame().Position.x, groundLevel - FarmSettings.FarmDistance, enemy:GetModelCFrame().Position.z)
                                 Player.Character:MoveTo(tpPosition)
                             else
                                 if currentDistance >= 300 then
@@ -804,7 +812,7 @@ local PageFarm = MainUI.AddPage("Farm", false)
 local FarmToggle = PageFarm.AddToggle("Auto Farm (Set Aura Hit Mode)", false, function(value)
     Toggles.Farm = value
     if not value then
-        Player.Character:MoveTo(Vector3.new(Player.Character.HumanoidRootPart.Position.x, groundLevel+15, Player.Character.HumanoidRootPart.Position.z))
+        Player.Character:MoveTo(Vector3.new(Player.Character.HumanoidRootPart.Position.x, groundLevel, Player.Character.HumanoidRootPart.Position.z))
         Workspace.Gravity = 196.2
     end
 end)
