@@ -1186,5 +1186,7 @@ end)
 local autoRejoin = PageMisc.AddToggle("Auto Server Hop on Moderator Join", FarmSettings.LeaveOnMod, function(value)
     FarmSettings.LeaveOnMod = value
     Save("FarmSettings", FarmSettings)
-    checkCurrentMods()
+    if value then
+        checkCurrentMods()
+    end
 end)
