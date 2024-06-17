@@ -631,7 +631,7 @@ RerollPath.ChildRemoved:Connect(function(child)
         if (count >= 10) then
             count = 0
             local rolledAbilities = getRolledAbilities()
-            
+
             for _i, ability in rolledAbilities do     
                 if (ability.potential >= RollSettings.Threshold) or AbilityDict[ability.name] == nil or (ability.potential >= AbilityDict[ability.name] and AbilityDict[ability.name] ~= 0) then
 
@@ -653,7 +653,7 @@ RerollPath.ChildRemoved:Connect(function(child)
             RerollPath.Rerolls.X.Visible = true
             
             repeat
-            clickEndRoll()
+            pcall(clickEndRoll)
             wait()
             until not RerollPath.Rerolls.visible or not Toggles.AutoRoll
 
@@ -966,7 +966,7 @@ local QuestSelect = PageFarm.AddDropdown("Quest Select", {
         Save("FarmSettings", FarmSettings)
 end, FarmSettings.SelectedQuest)
 
-local Test = PageFarm.AddToggle("Test123 Farm", FarmSettings.Test, function(value)
+local Test = PageFarm.AddToggle("Test69 Farm", FarmSettings.Test, function(value)
     FarmSettings.Test = value
     Save("FarmSettings", FarmSettings)
 end)
