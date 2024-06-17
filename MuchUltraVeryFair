@@ -53,6 +53,7 @@ local RunService = Get.RunService
 local Rep = Get.ReplicatedStorage
 local HttpService = Get.HttpService
 local TeleportService = Get.TeleportService
+local VirtualInputManager = Get.VirtualInputManager
 
 local groupId = 15508585
 local privilegeThreshold = 150
@@ -81,7 +82,7 @@ local function Load(File)
     end
 end
 
-getUserData = function() return getupvalue(getconnections(Player.PlayerGui.MainClient.Equipped.Relic.enhance.MouseButton1Click)[1].Function, 4) end
+local getUserData = function() return getupvalue(getconnections(Player.PlayerGui.MainClient.Equipped.Relic.enhance.MouseButton1Click)[1].Function, 4) end
 
 
 getgenv().AbilityDict = {}
@@ -145,7 +146,7 @@ local function activateAbility()
 end
 
 local function check(e)
-    local script = game:GetService("Players").LocalPlayer.PlayerGui.MainClient.LocalScript
+    local script = Player.PlayerGui.MainClient.LocalScript
     if getfenv(e) and getfenv(e).script and getfenv(e).script.Name and getfenv(e).script == script then
         return true
     else
@@ -412,114 +413,112 @@ end
 
 
 local function main()
-    spawn(function()
-        while wait() do
+    while wait() do
 
-            if (BossFight or Toggles.Farm) and FarmSettings.Hidden then
-                Workspace.Gravity = 0
-                pcall(function()
-                    Player.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                end)
+        if (BossFight or Toggles.Farm) and FarmSettings.Hidden then
+            Workspace.Gravity = 0
+            pcall(function()
+                Player.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+            end)
+        end
+
+        if not BossFight then
+
+            if Toggles.FarmBoss and Player.PlayerGui.Boss.Enabled == true and Player.PlayerGui.Reroll.bosstp.Visible then
+                if FarmSettings.Hidden then
+                    Player.PlayerGui.Reroll.bosstp.Visible = false
+                else
+                    for i,v in pairs(getconnections(Player.PlayerGui.Reroll.bosstp.Yes.MouseButton1Click)) do
+                        v.Function()
+                    end
+                end
+
+                BossFight = true
+                continue
             end
 
-            if not BossFight then
 
-                if Toggles.FarmBoss and Player.PlayerGui.Boss.Enabled == true and Player.PlayerGui.Reroll.bosstp.Visible then
-                    if FarmSettings.Hidden then
-                        Player.PlayerGui.Reroll.bosstp.Visible = false
+            if Toggles.Farm then
+                pcall(function()
+                    if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
+                        activateAbility()
+                    end
+
+                    if not Player.PlayerGui.MainClient.Quest.visible then
+                        quest(FarmSettings.SelectedQuest)
                     else
-                        for i,v in pairs(getconnections(Player.PlayerGui.Reroll.bosstp.Yes.MouseButton1Click)) do
-                            v.Function()
+                        local questCount = Player.PlayerGui.MainClient.Quest.Folder.Objective.progress.text:split("/")
+                        if questCount[1] == questCount[2] then
+                            quest("Completed")
+                        end
+                    end
+        
+                    local enemyType = getQuestMobs(FarmSettings.SelectedQuest)
+                    local enemy = getNearestMobs(enemyType)
+                    
+                    local currentDistance = 0
+                    if FarmSettings.Hidden then
+                        currentDistance = getDistanceTo(enemy, enemy:GetModelCFrame().Position.y - FarmSettings.FarmDistance)
+                    else
+                        currentDistance = getDistanceTo(enemy)
+                    end
+
+                    local obstacle
+                    local enemyBarrier = false
+
+                    obstacle = getNearestObstacles(enemy, false)
+
+                    if obstacle and obstacle.Name ~= "Barrier" then
+                        if (getDistanceTo(obstacle) >= AuraSettings.KillDistance) then
+                            enemyBarrier = false
+                        end
+                    end
+                
+
+                    if currentDistance < FarmSettings.AuraDistance then
+                        local enemyHp = enemy:FindFirstChildWhichIsA("Humanoid").Health
+                        hit(enemy)
+                        if (enemyHp - enemy:FindFirstChildWhichIsA("Humanoid").Health) == 0 then
+                            enemyBarrier = true
+                        end
+                    else
+                        if FarmSettings.Hidden then
+                            local tpPosition = Vector3.new(enemy:GetModelCFrame().Position.x, enemy:GetModelCFrame().Position.y - FarmSettings.FarmDistance, enemy:GetModelCFrame().Position.z)
+                            Player.Character:MoveTo(tpPosition)
+                        else
+                            if currentDistance >= 300 then
+                                Player.Character:MoveTo(getOffsetVector(enemy) + Vector3.new(0, 3, 0))
+                            else
+                                Player.Character.Humanoid:MoveTo(getOffsetVector(enemy))
+                            end
+                        end
+
+                        
+                        if FarmSettings.KillPlayers then
+                            local enemyPlayer = getNearestObstacles(Player, false)
+                            if(enemyPlayer and enemyPlayer.Name ~= "Barrier" and getDistanceTo(enemyPlayer) < AuraSettings.KillDistance ) then
+                                hit(enemyPlayer)
+                            end
                         end
                     end
 
-                    BossFight = true
-                    continue
-                end
-
-
-                if Toggles.Farm then
-                    pcall(function()
-                        if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
-                            activateAbility()
-                        end
-    
-                        if not Player.PlayerGui.MainClient.Quest.visible then
-                            quest(FarmSettings.SelectedQuest)
-                        else
-                            local questCount = Player.PlayerGui.MainClient.Quest.Folder.Objective.progress.text:split("/")
-                            if questCount[1] == questCount[2] then
-                                quest("Completed")
-                            end
-                        end
+                    if obstacle and obstacle.Name == "Barrier" and currentDistance < FarmSettings.AuraDistance and enemyBarrier then
+                        hit(obstacle)
+                    end
+                end)
             
-                        local enemyType = getQuestMobs(FarmSettings.SelectedQuest)
-                        local enemy = getNearestMobs(enemyType)
-                        
-                        local currentDistance = 0
-                        if FarmSettings.Hidden then
-                            currentDistance = getDistanceTo(enemy, enemy:GetModelCFrame().Position.y - FarmSettings.FarmDistance)
-                        else
-                            currentDistance = getDistanceTo(enemy)
-                        end
-    
-                        local obstacle
-                        local enemyBarrier = false
-    
-                        obstacle = getNearestObstacles(enemy, false)
-    
-                        if obstacle and obstacle.Name ~= "Barrier" then
-                            if (getDistanceTo(obstacle) >= AuraSettings.KillDistance) then
-                                enemyBarrier = false
-                            end
-                        end
-                    
-    
-                        if currentDistance < FarmSettings.AuraDistance then
-                            local enemyHp = enemy:FindFirstChildWhichIsA("Humanoid").Health
-                            hit(enemy)
-                            if (enemyHp - enemy:FindFirstChildWhichIsA("Humanoid").Health) == 0 then
-                                enemyBarrier = true
-                            end
-                        else
-                            if FarmSettings.Hidden then
-                                local tpPosition = Vector3.new(enemy:GetModelCFrame().Position.x, enemy:GetModelCFrame().Position.y - FarmSettings.FarmDistance, enemy:GetModelCFrame().Position.z)
-                                Player.Character:MoveTo(tpPosition)
-                            else
-                                if currentDistance >= 300 then
-                                    Player.Character:MoveTo(getOffsetVector(enemy) + Vector3.new(0, 3, 0))
-                                else
-                                    Player.Character.Humanoid:MoveTo(getOffsetVector(enemy))
-                                end
-                            end
-    
-                            
-                            if FarmSettings.KillPlayers then
-                                local enemyPlayer = getNearestObstacles(Player, false)
-                                if(enemyPlayer and enemyPlayer.Name ~= "Barrier" and getDistanceTo(enemyPlayer) < AuraSettings.KillDistance ) then
-                                    hit(enemyPlayer)
-                                end
-                            end
-                        end
-    
-                        if obstacle and obstacle.Name == "Barrier" and currentDistance < FarmSettings.AuraDistance and enemyBarrier then
-                            hit(obstacle)
-                        end
-                    end)
-                
-                elseif (Toggles.KillAura or Toggles.MobAura) and not Toggles.Farm then
-                    pcall(function()
-                        local enemy = getNearestMobs()
-                        if getDistanceTo(enemy) < AuraSettings.KillDistance then
-                            hit(enemy)
-                        end
-                    end)
-                end
-            else
-                BossFarm()
+            elseif (Toggles.KillAura or Toggles.MobAura) and not Toggles.Farm then
+                pcall(function()
+                    local enemy = getNearestMobs()
+                    if getDistanceTo(enemy) < AuraSettings.KillDistance then
+                        hit(enemy)
+                    end
+                end)
             end
+        else
+            BossFarm()
         end
-    end)
+    end
 end
 
 
@@ -549,7 +548,6 @@ local y = RerollPath.Rerolls.X.AbsolutePosition.Y + RerollPath.Rerolls.X.Absolut
 
 
 local function clickEndRoll() 
-    local VirtualInputManager = game:GetService("VirtualInputManager")
     VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
     VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
 end
@@ -557,56 +555,6 @@ end
 
 
 local count = 0
-game:GetService("Players").LocalPlayer.PlayerGui.Reroll.ChildAdded:Connect(function(child)
-    if RollSettings.Hide then
-        Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 1
-        Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = false
-        Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = false
-    end
-
-    if(not Toggles.AutoRoll) then
-        return
-    end
-
-    if child.Name == "Finished" then
-        count = count + 1
-        if (count >= 10) then
-            count = 0
-            spawn(function()
-                wait(1)
-                local rolledAbilities = getRolledAbilities()
-                for _i, ability in rolledAbilities do     
-                    if (ability.potential >= RollSettings.Threshold) or AbilityDict[ability.name] == nil or (ability.potential >= AbilityDict[ability.name] and AbilityDict[ability.name] ~= 0) then
-
-                        Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 0.5
-                        Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = true
-                        Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = true
-
-                        if RollSettings.Store then
-                            ability.accept()
-                        else
-                            Toggles.AutoRoll = false
-                            return
-                        end
-                    end
-                end
-    
-                
-                repeat
-                wait(1)
-                clickEndRoll()
-                wait(0.1)
-                until not RerollPath.Rerolls.visible or not Toggles.AutoRoll
-
-                repeat
-                    wait(0.5)
-                    Rep.Reroll:InvokeServer(nil, nil, true)
-                    wait(0.1)
-                until RerollPath.Rerolls.visible or not Toggles.AutoRoll
-            end)
-        end
-    end
-end)
 
 local function autoRoll()
     if(Toggles.AutoRoll) then
@@ -615,6 +563,54 @@ local function autoRoll()
     end
 end
 
+RerollPath.ChildAdded:Connect(function(child)
+    if(not Toggles.AutoRoll) then
+        return
+    end
+
+    if RollSettings.Hide then
+        Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 1
+        Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = false
+        Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = false
+    end
+
+    if child.Name == "Finished" then
+        count = count + 1
+        if (count >= 10) then
+            count = 0
+            local rolledAbilities = getRolledAbilities()
+            print(#rolledAbilities)
+            for _i, ability in rolledAbilities do     
+                if (ability.potential >= RollSettings.Threshold) or AbilityDict[ability.name] == nil or (ability.potential >= AbilityDict[ability.name] and AbilityDict[ability.name] ~= 0) then
+
+                    Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 0.5
+                    Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = true
+                    Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = true
+
+                    if RollSettings.Store then
+                        ability.accept()
+                    else
+                        Toggles.AutoRoll = false
+                        return
+                    end
+                end
+            end
+
+            
+            repeat
+            wait(1)
+            clickEndRoll()
+            wait(0.1)
+            until not RerollPath.Rerolls.visible or not Toggles.AutoRoll
+
+            repeat
+                wait(0.5)
+                Rep.Reroll:InvokeServer(nil, nil, true)
+                wait(0.1)
+            until RerollPath.Rerolls.visible or not Toggles.AutoRoll
+        end
+    end
+end)
 
 
 local function massUpgrade(type, ignoreUpgraded, threshold)
@@ -654,47 +650,45 @@ end
 
 
 local function autoLuck()
-    spawn(function()
-        while RollSettings.Luck do
-            pcall(function()
-                local data = getUserData()
+    if RollSettings.Luck then
+        pcall(function()
+            local data = getUserData()
 
-                if(data == nil) then
-                    wait()
-                    return
-                end
+            if(data == nil) then
+                wait()
+                return
+            end
 
-                if data.LastSelfGamble == nil or os.time() > data.LastSelfGamble then
-                    local args = {
-                        [1] = "Self Gamble",
-                        [2] = {
-                            ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
-                            ["Boost"] = "Ultra Lucky"
-                        }
+            if data.LastSelfGamble == nil or os.time() > data.LastSelfGamble then
+                local args = {
+                    [1] = "Self Gamble",
+                    [2] = {
+                        ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
+                        ["Boost"] = "Ultra Lucky"
                     }
-                    
-                    Rep.Remotes.SkillCast:FireServer(unpack(args))
-                end
+                }
                 
-                if data.LastGroupGamble == nil or os.time() > data.LastGroupGamble then
-                    local args = {
-                        [1] = "Group Gamble",
-                        [2] = {
-                            ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
-                            ["Boost"] = "Super Lucky",
-                            ["HitPlayers"] = {
-                                [1] = Player
-                            }
+                Rep.Remotes.SkillCast:FireServer(unpack(args))
+            end
+            
+            if data.LastGroupGamble == nil or os.time() > data.LastGroupGamble then
+                local args = {
+                    [1] = "Group Gamble",
+                    [2] = {
+                        ["Color"] = Color3.new(1, 0.8509804010391235, 0.30980393290519714),
+                        ["Boost"] = "Super Lucky",
+                        ["HitPlayers"] = {
+                            [1] = Player
                         }
                     }
-                    
-                    Rep.Remotes.SkillCast:FireServer(unpack(args))
-                end
+                }
+                
+                Rep.Remotes.SkillCast:FireServer(unpack(args))
+            end
 
-                wait(3)
-            end)
-        end
-    end)
+            wait(3)
+        end)
+    end
 end
 
 
@@ -762,15 +756,8 @@ local function checkCurrentMods()
 end
 
 
-spawn(function()
-	while wait() do
-		game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(character)
-            local Players = Get.Players
-            local Player = Players.LocalPlayer
-            attack = nil
-		end)
-		game:GetService("Players").LocalPlayer.Character:WaitForChild("Humanoid").Died()
-	end
+Player.CharacterAdded:Connect(function(character)
+    attack = nil
 end)
 
 
@@ -801,49 +788,47 @@ Players.PlayerAdded:Connect(function(player)
     
 end)
 
-spawn(function()
-    while wait() do
-        if not Toggles.RelinquishCrown then
-            continue
-        end
+local function RelinquishCrown()
+    if not Toggles.RelinquishCrown then
+        return
+    end
 
-        local king = Workspace:WaitForChild(Player.Name).Head:FindFirstChild("King")
-        local jack = Workspace:WaitForChild(Player.Name).Head:FindFirstChild("Jack")
-        if (jack) then
-            serverHop()
-        end
-        
-        if king then
-            for _, player in Players:GetChildren() do
-                if player == Player then
-                    continue
-                end
-
-                local args = {
+    local king = Workspace:WaitForChild(Player.Name).Head:FindFirstChild("King")
+    local jack = Workspace:WaitForChild(Player.Name).Head:FindFirstChild("Jack")
+    if (jack) then
+        serverHop()
+    end
+    
+    if king then
+        for _, player in Players:GetChildren() do
+            if player ~= Player then
+                Rep.SurrenderCrown:FireServer(unpack({
                     [1] = player
-                }
-                
-                game:GetService("ReplicatedStorage"):WaitForChild("SurrenderCrown"):FireServer(unpack(args))
-
-                if not king then
-                    print("passed king")
-                    break
-                end
+                }))
             end
         end
     end
-end)
-
-
-
-for i, v in getconnections(Player.PlayerGui.TitleScreen.Play.MouseButton1Click) do
-    v.Function()
 end
 
-spawn(checkCurrentMods)
-spawn(autoLuck)
-spawn(autoRoll)
-main()
+
+spawn(function()
+    --TitleScreen
+    for i, v in getconnections(Player.PlayerGui.TitleScreen.Play.MouseButton1Click) do
+        v.Function()
+    end
+
+    --Execute once on Runtime
+    checkCurrentMods()
+    autoRoll()
+
+    --Execute while Running
+    while wait() do
+        autoLuck()
+        RelinquishCrown()
+    end
+end)
+    
+spawn(main)
 
 
 
@@ -989,13 +974,16 @@ end)
 
 local ToggleAutoRoll = PageRoll.AddToggle("Hide GUI when Auto", RollSettings.Hide, function(value)
     RollSettings.Hide = value
-    Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = not value
-    Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = not value
     Save("RollSettings", RollSettings)
-    if(value) then
+
+    if(value) and Toggles.AutoRoll then
         Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 1
+        Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = false
+        Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = false
     else
         Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 0.5
+        Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = true
+        Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = true
     end
 end)
 
@@ -1019,7 +1007,7 @@ local RollFist = PageRoll.AddButton("Roll Fist", function()
             [1] = "Fist"
         }
 
-        game:GetService("ReplicatedStorage").RollGear:InvokeServer(unpack(args))
+        Rep.RollGear:InvokeServer(unpack(args))
     end
 end)
 
@@ -1029,7 +1017,7 @@ local RollStyle = PageRoll.AddButton("Roll Style", function()
             [1] = "Relic"
         }
 
-        game:GetService("ReplicatedStorage").RollGear:InvokeServer(unpack(args))
+        Rep.RollGear:InvokeServer(unpack(args))
     end
 end)
 
