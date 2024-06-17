@@ -780,7 +780,7 @@ local function checkCurrentMods()
         for index, player in Players:GetChildren() do
             spawn(function()
                 local success, rank = pcall(getUserGroupRank, player.userId, groupId)
-                if rank and rank >= privilegeThreshold then
+                if success and rank and rank >= privilegeThreshold then
                     print("Privileged member is here: " .. player.Name .. " with rank: " .. rank)
                     serverHop()
                 end
@@ -847,18 +847,21 @@ end
 
 spawn(function()
     --TitleScreen
-    for i, v in getconnections(Player.PlayerGui.TitleScreen.Play.MouseButton1Click) do
-        v.Function()
-    end
+    pcall(function()
+        for i, v in getconnections(Player.PlayerGui.TitleScreen.Play.MouseButton1Click) do
+            v.Function()
+        end
+    end)
+   
 
     --Execute once on Runtime
     spawn(checkCurrentMods)
-    autoRoll()
+    pcall(autoRoll())
 
     --Execute while Running
     while wait() do
-        autoLuck()
-        RelinquishCrown()
+        pcall(autoLuck)
+        pcall(RelinquishCrown)
     end
 end)
     
