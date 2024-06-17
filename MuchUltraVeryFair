@@ -818,7 +818,7 @@ spawn(function()
     end
 
     --Execute once on Runtime
-    checkCurrentMods()
+    spawn(checkCurrentMods)
     autoRoll()
 
     --Execute while Running
@@ -1172,9 +1172,7 @@ end)
 
 local King = PageMisc.AddToggle("Relinquish King", Toggles.RelinquishCrown, function(value)
     Toggles.RelinquishCrown = value
-    if value then
-        
-    end
+    Save(Toggles.RelinquishCrown)
 end)
 
 local Reset = PageMisc.AddButton("Reset Character", function()
