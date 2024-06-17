@@ -927,11 +927,6 @@ local TpToggle = PageFarm.AddToggle("Hidden Farm", FarmSettings.Hidden, function
     end
 end)
 
-local Test = PageFarm.AddToggle("Test123 Farm", FarmSettings.Test, function(value)
-    FarmSettings.Test = value
-    Save("FarmSettings", FarmSettings)
-end)
-
 local QuestSelect = PageFarm.AddDropdown("Quest Select", {
     "Real Amgogus",
     "Gaming Disorder",
@@ -948,7 +943,10 @@ local QuestSelect = PageFarm.AddDropdown("Quest Select", {
         Save("FarmSettings", FarmSettings)
 end, FarmSettings.SelectedQuest)
 
-
+local Test = PageFarm.AddToggle("Test1234 Farm", FarmSettings.Test, function(value)
+    FarmSettings.Test = value
+    Save("FarmSettings", FarmSettings)
+end)
 
 local PageKillAura = MainUI.AddPage("Kill Aura", false)
 
