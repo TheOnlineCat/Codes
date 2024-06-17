@@ -582,13 +582,9 @@ end
 local function clickEndRoll() 
     local x = RerollPath.Rerolls.X.AbsolutePosition.X + RerollPath.Rerolls.X.AbsoluteSize.X / 2
     local y = RerollPath.Rerolls.X.AbsolutePosition.Y + RerollPath.Rerolls.X.AbsoluteSize.Y
-    RerollPath.Rerolls.X.ZIndex = 9999
-    RerollPath.Rerolls.X.Visible = true
-    wait()
+
     VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
     VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
-    RerollPath.Rerolls.X.ZIndex = 3
-    RerollPath.Rerolls.X.Visible = not RollSettings.Hide
 end
 
 
@@ -609,12 +605,14 @@ local function toggleHideRoll()
         Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = false
         Player.PlayerGui.Reroll.Rerolls.title.Visible = false
         Player.PlayerGui.Reroll.Rerolls.X.Visible = false
+        RerollPath.Rerolls.X.ZIndex = 9999
     else
         Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 0.5
         Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = true
         Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = true
         Player.PlayerGui.Reroll.Rerolls.title.Visible = true
-        Player.PlayerGui.Reroll.Rerolls.X.Visible = true
+        RerollPath.Rerolls.X.ZIndex = 3
+        RerollPath.Rerolls.X.Visible = true
     end
 end
 
@@ -648,11 +646,16 @@ RerollPath.ChildRemoved:Connect(function(child)
                 end
             end
 
+            RerollPath.Rerolls.X.ZIndex = 9999
+            RerollPath.Rerolls.X.Visible = true
             
             repeat
             clickEndRoll()
             wait()
             until not RerollPath.Rerolls.visible or not Toggles.AutoRoll
+
+            RerollPath.Rerolls.X.ZIndex = 3
+            RerollPath.Rerolls.X.Visible = not RollSettings.Hide
 
             repeat
                 wait()
