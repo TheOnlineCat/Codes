@@ -856,7 +856,7 @@ spawn(function()
 
     --Execute once on Runtime
     spawn(checkCurrentMods)
-    pcall(autoRoll())
+    pcall(autoRoll)
 
     --Execute while Running
     while wait() do
