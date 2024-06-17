@@ -60,9 +60,21 @@ local privilegeThreshold = 150
 
 
 local function Save(File, Table)
+    if (makefolder and isfolder) then
+        pcall(function()
+            if not isfolder("MUVF") then
+                makefolder("MUVF")
+                print("Folder created: " .. "MUVF")
+            else
+                print("Folder already exists: " .. "MUVF")
+            end
+        end)
+    end
+    
+
     if (writefile) then
         local json = HttpService:JSONEncode(Table)
-        writefile("UU_"..File..".txt", json)
+        writefile("MUVF/UU_"..File..".txt", json)
     else
         print("Saving Not Supported")
     end
@@ -74,7 +86,7 @@ local function Load(File)
         --File Reading Not supported
         return
     end
-    if isfile("UU_"..File..".txt") then
+    if isfile("MUVF/UU_"..File..".txt") then
         print("Found File")
         Table = HttpService:JSONDecode(readfile("UU_"..File..".txt"))
         print("Settings Loaded")
@@ -894,7 +906,7 @@ local TpToggle = PageFarm.AddToggle("Hidden Farm", FarmSettings.Hidden, function
     end
 end)
 
-local Test = PageFarm.AddToggle("Test123 Farm", FarmSettings.Test, function(value)
+local Test = PageFarm.AddToggle("Test69 Farm", FarmSettings.Test, function(value)
     FarmSettings.Test = value
     Save("FarmSettings", FarmSettings)
 end)
@@ -939,7 +951,6 @@ local SliderPunchSpeed = PageKillAura.AddSlider("Hit Speed (ms)", {Min = 1, Max 
     Save("AuraSettings", AuraSettings)
 end)
 
--- local Label1 = PageKillAura.AddLabel("Choose Aura Mode")
 
 local AuraMode = PageKillAura.AddDropdown("Aura Hit Mode",
     {   
