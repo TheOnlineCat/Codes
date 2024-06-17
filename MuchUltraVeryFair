@@ -459,11 +459,11 @@ local function main()
 
         if not BossFight then
 
-            if Toggles.FarmBoss and Player.PlayerGui.Boss.Enabled == true and Player.PlayerGui.Reroll.bosstp.Visible then
+            if Toggles.FarmBoss and Player.PlayerGui.Boss.Enabled == true and RerollPath.bosstp.Visible then
                 if FarmSettings.Hidden then
-                    Player.PlayerGui.Reroll.bosstp.Visible = false
+                    RerollPath.bosstp.Visible = false
                 else
-                    for i,v in pairs(getconnections(Player.PlayerGui.Reroll.bosstp.Yes.MouseButton1Click)) do
+                    for i,v in pairs(getconnections(RerollPath.bosstp.Yes.MouseButton1Click)) do
                         v.Function()
                     end
                 end
@@ -600,19 +600,21 @@ end
 
 local function toggleHideRoll()
     if RollSettings.Hide and Toggles.AutoRoll then
-        Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 1
-        Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = false
-        Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = false
-        Player.PlayerGui.Reroll.Rerolls.title.Visible = false
-        Player.PlayerGui.Reroll.Rerolls.X.Visible = false
-        RerollPath.Rerolls.X.ZIndex = 9999
+        RerollPath.Rerolls.BackgroundTransparency = 1
+        RerollPath.Rerolls.UIStroke.Enabled = false
+        RerollPath.Rerolls.ScrollingFrame.Visible = false
+        RerollPath.Rerolls.title.Visible = false
+        RerollPath.Rerolls.X.Visible = false
+        RerollPath.Rerolls.X.ZIndex = 10
+        Player.PlayerGui.Trading.Trading.ZIndex = 9
     else
-        Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 0.5
-        Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = true
-        Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = true
-        Player.PlayerGui.Reroll.Rerolls.title.Visible = true
+        RerollPath.Rerolls.BackgroundTransparency = 0.5
+        RerollPath.Rerolls.UIStroke.Enabled = true
+        RerollPath.Rerolls.ScrollingFrame.Visible = true
+        RerollPath.Rerolls.title.Visible = true
         RerollPath.Rerolls.X.ZIndex = 3
         RerollPath.Rerolls.X.Visible = true
+        Player.PlayerGui.Trading.Trading.ZIndex = 10
     end
 end
 
@@ -629,16 +631,17 @@ RerollPath.ChildRemoved:Connect(function(child)
         if (count >= 10) then
             count = 0
             local rolledAbilities = getRolledAbilities()
-            print(#rolledAbilities)
+            
             for _i, ability in rolledAbilities do     
                 if (ability.potential >= RollSettings.Threshold) or AbilityDict[ability.name] == nil or (ability.potential >= AbilityDict[ability.name] and AbilityDict[ability.name] ~= 0) then
 
-                    Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 0.5
-                    Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = true
-                    Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = true
+                    RerollPath.Rerolls.BackgroundTransparency = 0.5
+                    RerollPath.Rerolls.UIStroke.Enabled = true
+                    RerollPath.Rerolls.ScrollingFrame.Visible = true
 
                     if RollSettings.Store then
                         ability.accept()
+                        wait(0.2)
                     else
                         Toggles.AutoRoll = false
                         return
@@ -646,7 +649,7 @@ RerollPath.ChildRemoved:Connect(function(child)
                 end
             end
 
-            RerollPath.Rerolls.X.ZIndex = 9999
+            RerollPath.Rerolls.X.ZIndex = 10
             RerollPath.Rerolls.X.Visible = true
             
             repeat
