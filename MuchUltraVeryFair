@@ -653,8 +653,10 @@ RerollPath.ChildRemoved:Connect(function(child)
             RerollPath.Rerolls.X.Visible = true
             
             repeat
-            pcall(clickEndRoll)
-            wait()
+                RerollPath.Rerolls.X.Visible = true
+                wait()
+                pcall(clickEndRoll)
+                wait()
             until not RerollPath.Rerolls.visible or not Toggles.AutoRoll
 
             RerollPath.Rerolls.X.ZIndex = 3
