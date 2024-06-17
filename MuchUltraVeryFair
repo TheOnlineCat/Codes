@@ -59,42 +59,6 @@ local groupId = 15508585
 local privilegeThreshold = 150
 
 
--- local function Save(File, Table)
---     if (makefolder and isfolder) then
---         pcall(function()
---             if not isfolder("MUVF") then
---                 makefolder("MUVF")
---                 print("Folder created: " .. "MUVF")
---             end
---         end)
---     end
-    
-
---     if (writefile) then
---         local json = HttpService:JSONEncode(Table)
---         writefile("MUVF/UU_"..File..".txt", json)
---     else
---         print("Saving Not Supported")
---     end
--- end
-
--- local function Load(File)
---     if not (readfile and isfile and isfolder) then
---         print("Loading Not Supported")
---         --File Reading Not supported
---         return
---     end
-
---     pcall(function()
---         if isfile("MUVF/UU_"..File..".txt") then
---             print("Found File")
---             local Table = HttpService:JSONDecode(readfile("MUVF/UU_"..File..".txt"))
---             print("Settings Loaded")
---             return(Table)
---         end
---     end) 
--- end
-
 local function Save(File, Table)
     if (writefile) then
         local json = HttpService:JSONEncode(Table)
@@ -112,7 +76,7 @@ local function Load(File)
     end
     if isfile("UU_"..File..".txt") then
         print("Found File")
-        local Table = HttpService:JSONDecode(readfile("UU_"..File..".txt"))
+        Table = HttpService:JSONDecode(readfile("UU_"..File..".txt"))
         print("Settings Loaded")
         return(Table)
     end
@@ -930,7 +894,7 @@ local TpToggle = PageFarm.AddToggle("Hidden Farm", FarmSettings.Hidden, function
     end
 end)
 
-local Test = PageFarm.AddToggle("Test69 Farm", FarmSettings.Test, function(value)
+local Test = PageFarm.AddToggle("Test123 Farm", FarmSettings.Test, function(value)
     FarmSettings.Test = value
     Save("FarmSettings", FarmSettings)
 end)
@@ -975,6 +939,7 @@ local SliderPunchSpeed = PageKillAura.AddSlider("Hit Speed (ms)", {Min = 1, Max 
     Save("AuraSettings", AuraSettings)
 end)
 
+-- local Label1 = PageKillAura.AddLabel("Choose Aura Mode")
 
 local AuraMode = PageKillAura.AddDropdown("Aura Hit Mode",
     {   
