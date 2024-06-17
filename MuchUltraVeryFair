@@ -59,40 +59,63 @@ local groupId = 15508585
 local privilegeThreshold = 150
 
 
-local function Save(File, Table)
-    if (makefolder and isfolder) then
-        pcall(function()
-            if not isfolder("MUVF") then
-                makefolder("MUVF")
-                print("Folder created: " .. "MUVF")
-            end
-        end)
-    end
+-- local function Save(File, Table)
+--     if (makefolder and isfolder) then
+--         pcall(function()
+--             if not isfolder("MUVF") then
+--                 makefolder("MUVF")
+--                 print("Folder created: " .. "MUVF")
+--             end
+--         end)
+--     end
     
 
+--     if (writefile) then
+--         local json = HttpService:JSONEncode(Table)
+--         writefile("MUVF/UU_"..File..".txt", json)
+--     else
+--         print("Saving Not Supported")
+--     end
+-- end
+
+-- local function Load(File)
+--     if not (readfile and isfile and isfolder) then
+--         print("Loading Not Supported")
+--         --File Reading Not supported
+--         return
+--     end
+
+--     pcall(function()
+--         if isfile("MUVF/UU_"..File..".txt") then
+--             print("Found File")
+--             local Table = HttpService:JSONDecode(readfile("MUVF/UU_"..File..".txt"))
+--             print("Settings Loaded")
+--             return(Table)
+--         end
+--     end) 
+-- end
+
+local function Save(File, Table)
     if (writefile) then
         local json = HttpService:JSONEncode(Table)
-        writefile("MUVF/UU_"..File..".txt", json)
+        writefile(File..".txt", json)
     else
         print("Saving Not Supported")
     end
 end
 
 local function Load(File)
-    if not (readfile and isfile and isfolder) then
+    if not (readfile and isfile) then
         print("Loading Not Supported")
         --File Reading Not supported
         return
     end
-
-    pcall(function()
-        if isfile("MUVF/UU_"..File..".txt") then
-            print("Found File")
-            local Table = HttpService:JSONDecode(readfile("MUVF/UU_"..File..".txt"))
-            print("Settings Loaded")
-            return(Table)
-        end
-    end) 
+    if isfile(File..".txt") then
+        print("Found File")
+        local Table = HttpService:JSONDecode(readfile(File..".txt"))
+        print("Settings Loaded")
+        return(Table)
+    end
 end
 
 local getUserData = function() return getupvalue(getconnections(Player.PlayerGui.MainClient.Equipped.Relic.enhance.MouseButton1Click)[1].Function, 4) end
