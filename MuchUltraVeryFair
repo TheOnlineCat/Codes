@@ -86,14 +86,12 @@ local function Load(File)
     end
 
     pcall(function()
-        if isfolder("MUVF") then
-            if isfile("MUVF/UU_"..File..".txt") then
-                print("Found File")
-                local Table = HttpService:JSONDecode(readfile("UU_"..File..".txt"))
-                print("Settings Loaded")
-                return(Table)
-            end
-        end  
+        if isfile("MUVF/UU_"..File..".txt") then
+            print("Found File")
+            local Table = HttpService:JSONDecode(readfile("MUVF/UU_"..File..".txt"))
+            print("Settings Loaded")
+            return(Table)
+        end
     end) 
 end
 
