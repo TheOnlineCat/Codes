@@ -1020,6 +1020,7 @@ end)
 local ToggleAutoRoll = PageRoll.AddToggle("Auto Roll Ability", Toggles.AutoRoll, function(value)
     Toggles.AutoRoll = value
     Save("Toggles", Toggles)
+    toggleHideRoll()
     if(value) then
         autoRoll()
     end
