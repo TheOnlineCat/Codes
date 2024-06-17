@@ -968,7 +968,7 @@ local QuestSelect = PageFarm.AddDropdown("Quest Select", {
         Save("FarmSettings", FarmSettings)
 end, FarmSettings.SelectedQuest)
 
-local Test = PageFarm.AddToggle("Test69 Farm", FarmSettings.Test, function(value)
+local Test = PageFarm.AddToggle("Test123 Farm", FarmSettings.Test, function(value)
     FarmSettings.Test = value
     Save("FarmSettings", FarmSettings)
 end)
