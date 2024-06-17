@@ -359,7 +359,7 @@ end
 local BossFight = false
 
 
-local function LocateBoss()
+local function getBoss()
     for i, v in ipairs(Workspace:GetChildren()) do
         if v:IsA("Model") and table.find(BossList , v.Name) then
             if (v:GetModelCFrame().Position - BossPosition).Magnitude < 30 then
@@ -372,14 +372,14 @@ end
 
 local function BossFarm()
     pcall(function()
-        local Boss = LocateBoss()
+        local Boss = getBoss()
 
         if (FarmSettings.Hidden) then
             local target = Vector3.new(Boss:GetModelCFrame().Position.x, Boss:GetModelCFrame().Position.y - FarmSettings.FarmDistance, Boss:GetModelCFrame().Position.z)
             Player.Character:MoveTo(target)
         end
 
-        while Boss.Humanoid.Health > 0 and Toggles.FarmBoss and Boss do
+        while Boss and Boss.Humanoid.Health > 0 and Toggles.FarmBoss do
             if not Player.Character:FindFirstChild("Head"):FindFirstChild("LeftGlow") then
                 activateAbility()
             end
@@ -391,7 +391,7 @@ local function BossFarm()
                 currentDistance = getDistanceTo(Boss)
             end
             
-            if currentDistance < AuraSettings.KillDistance then
+            if currentDistance < FarmSettings.FarmDistance then
                 hit(Boss)
             else 
                 Player.Character.Humanoid:MoveTo(getOffsetVector(Boss))
@@ -400,7 +400,7 @@ local function BossFarm()
 
             if Toggles.BreakBarrier then
                 local Barrier = getNearestObstacles(Boss, true)
-                if getDistanceTo(Barrier) < AuraSettings.KillDistance  then
+                if getDistanceTo(Barrier) < FarmSettings.FarmDistance  then
                     hit(Barrier)
                 end
             end
@@ -563,7 +563,7 @@ local function autoRoll()
     end
 end
 
-RerollPath.ChildAdded:Connect(function(child)
+RerollPath.ChildRemoved:Connect(function(child)
     if(not Toggles.AutoRoll) then
         return
     end
@@ -598,15 +598,14 @@ RerollPath.ChildAdded:Connect(function(child)
 
             
             repeat
-            wait(1)
             clickEndRoll()
-            wait(0.1)
+            wait()
             until not RerollPath.Rerolls.visible or not Toggles.AutoRoll
 
             repeat
                 wait(0.5)
                 Rep.Reroll:InvokeServer(nil, nil, true)
-                wait(0.1)
+                wait()
             until RerollPath.Rerolls.visible or not Toggles.AutoRoll
         end
     end
