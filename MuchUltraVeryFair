@@ -578,13 +578,17 @@ local function getRolledAbilities()
     return abilityResults
 end
 
-local x = RerollPath.Rerolls.X.AbsolutePosition.X + RerollPath.Rerolls.X.AbsoluteSize.X / 2
-local y = RerollPath.Rerolls.X.AbsolutePosition.Y + RerollPath.Rerolls.X.AbsoluteSize.Y
-
 
 local function clickEndRoll() 
+    local x = RerollPath.Rerolls.X.AbsolutePosition.X + RerollPath.Rerolls.X.AbsoluteSize.X / 2
+    local y = RerollPath.Rerolls.X.AbsolutePosition.Y + RerollPath.Rerolls.X.AbsoluteSize.Y
+    RerollPath.Rerolls.X.ZIndex = 9999
+    RerollPath.Rerolls.X.Visible = true
+    wait()
     VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
     VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
+    RerollPath.Rerolls.X.ZIndex = 3
+    RerollPath.Rerolls.X.Visible = not RollSettings.Hide
 end
 
 
@@ -598,16 +602,29 @@ local function autoRoll()
     end
 end
 
+local function toggleHideRoll()
+    if RollSettings.Hide and Toggles.AutoRoll then
+        Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 1
+        Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = false
+        Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = false
+        Player.PlayerGui.Reroll.Rerolls.title.Visible = false
+        Player.PlayerGui.Reroll.Rerolls.X.Visible = false
+    else
+        Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 0.5
+        Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = true
+        Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = true
+        Player.PlayerGui.Reroll.Rerolls.title.Visible = true
+        Player.PlayerGui.Reroll.Rerolls.X.Visible = true
+    end
+end
+
+
 RerollPath.ChildRemoved:Connect(function(child)
     if(not Toggles.AutoRoll) then
         return
     end
 
-    if RollSettings.Hide then
-        Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 1
-        Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = false
-        Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = false
-    end
+    toggleHideRoll()
 
     if child.Name == "Finished" then
         count = count + 1
@@ -943,7 +960,7 @@ local QuestSelect = PageFarm.AddDropdown("Quest Select", {
         Save("FarmSettings", FarmSettings)
 end, FarmSettings.SelectedQuest)
 
-local Test = PageFarm.AddToggle("Test60 Farm", FarmSettings.Test, function(value)
+local Test = PageFarm.AddToggle("Test69 Farm", FarmSettings.Test, function(value)
     FarmSettings.Test = value
     Save("FarmSettings", FarmSettings)
 end)
@@ -1006,15 +1023,7 @@ local ToggleAutoRoll = PageRoll.AddToggle("Hide GUI when Auto", RollSettings.Hid
     RollSettings.Hide = value
     Save("RollSettings", RollSettings)
 
-    if(value) and Toggles.AutoRoll then
-        Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 1
-        Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = false
-        Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = false
-    else
-        Player.PlayerGui.Reroll.Rerolls.BackgroundTransparency = 0.5
-        Player.PlayerGui.Reroll.Rerolls.UIStroke.Enabled = true
-        Player.PlayerGui.Reroll.Rerolls.ScrollingFrame.Visible = true
-    end
+    toggleHideRoll()
 end)
 
 
