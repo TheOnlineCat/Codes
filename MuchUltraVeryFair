@@ -688,11 +688,6 @@ local function autoLuck()
         pcall(function()
             local data = getUserData()
 
-            if(data == nil) then
-                wait()
-                return
-            end
-
             if data.LastSelfGamble == nil or os.time() > data.LastSelfGamble then
                 local args = {
                     [1] = "Self Gamble",
@@ -856,12 +851,12 @@ spawn(function()
 
     --Execute once on Runtime
     spawn(checkCurrentMods)
-    pcall(autoRoll)
+    pcall(autoRoll())
 
     --Execute while Running
     while wait() do
-        pcall(autoLuck)
-        pcall(RelinquishCrown)
+        spawn(autoLuck)
+        spawn(RelinquishCrown)
     end
 end)
     
