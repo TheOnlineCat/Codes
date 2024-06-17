@@ -851,7 +851,7 @@ spawn(function()
 
     --Execute once on Runtime
     spawn(checkCurrentMods)
-    pcall(autoRoll())
+    spawn(autoRoll)
 
     --Execute while Running
     while wait() do
@@ -943,7 +943,7 @@ local QuestSelect = PageFarm.AddDropdown("Quest Select", {
         Save("FarmSettings", FarmSettings)
 end, FarmSettings.SelectedQuest)
 
-local Test = PageFarm.AddToggle("Test1234 Farm", FarmSettings.Test, function(value)
+local Test = PageFarm.AddToggle("Test60 Farm", FarmSettings.Test, function(value)
     FarmSettings.Test = value
     Save("FarmSettings", FarmSettings)
 end)
