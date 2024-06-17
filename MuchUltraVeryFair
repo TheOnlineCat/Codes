@@ -84,18 +84,15 @@ local function Load(File)
         --File Reading Not supported
         return
     end
-    
-    pcall(function()
-        if isfolder("MUVF") then
-            if isfile("MUVF/UU_"..File..".txt") then
-                print("Found File")
-                Table = HttpService:JSONDecode(readfile("UU_"..File..".txt"))
-                print("Settings Loaded")
-                return(Table)
-            end
-        end  
-    end)
-    return {}
+
+    if isfolder("MUVF") then
+        if isfile("MUVF/UU_"..File..".txt") then
+            print("Found File")
+            local Table = HttpService:JSONDecode(readfile("UU_"..File..".txt"))
+            print("Settings Loaded")
+            return(Table)
+        end
+    end  
 end
 
 local getUserData = function() return getupvalue(getconnections(Player.PlayerGui.MainClient.Equipped.Relic.enhance.MouseButton1Click)[1].Function, 4) end
