@@ -98,7 +98,7 @@ local privilegeThreshold = 150
 local function Save(File, Table)
     if (writefile) then
         local json = HttpService:JSONEncode(Table)
-        writefile(File..".txt", json)
+        writefile("UU_"..File..".txt", json)
     else
         print("Saving Not Supported")
     end
@@ -110,9 +110,9 @@ local function Load(File)
         --File Reading Not supported
         return
     end
-    if isfile(File..".txt") then
+    if isfile("UU_"..File..".txt") then
         print("Found File")
-        local Table = HttpService:JSONDecode(readfile(File..".txt"))
+        local Table = HttpService:JSONDecode(readfile("UU_"..File..".txt"))
         print("Settings Loaded")
         return(Table)
     end
